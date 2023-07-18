@@ -19,7 +19,7 @@ from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMP
 # from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
 import os
-import chat_app
+from chat_app import chat_app 
 
 
 
