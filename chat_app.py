@@ -7,7 +7,7 @@ from langchain.chat_models import ChatOpenAI
 import os
 
 
-#test
+#test keterangan tambahan
 
 def chat_app():
 	
