@@ -104,7 +104,10 @@ def run():
                 
                 st.write(f"URL: {url}")
                 st.write(f"Username: {username}")
-                st.write(f"Password: {password}")
+                
+                masked_password = password[:2] + '*' * (len(password) - 2)
+
+                st.write(f"Password: {masked_password}")
                 st.write(f"Token will expire in {remaining_hours} hours")
                 st.write('---')
 
