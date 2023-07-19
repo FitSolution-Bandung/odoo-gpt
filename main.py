@@ -143,7 +143,7 @@ if API_O:
 else:
   st.sidebar.warning(
     'API key required to try this app.The API key is not stored in any form.')
-  # st.stop()
+  st.stop()
 
 #Kirim Pesan
 chat_history_expander = st.expander("💬 Chat History", expanded=True)
