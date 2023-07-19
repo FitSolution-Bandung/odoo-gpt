@@ -57,7 +57,7 @@ def view_table(db_name, table_name):
     
     for row in rows:
         st.write(row)
-        
+   
     con.close()
 
 
@@ -77,53 +77,13 @@ def clear_table(db_name, table_name):
 
 
 
-def run():
-    
-    st.markdown("""
-        # You are loged in.
-                    
-        :information_source: Your token: `{}`
-        Please click the button below to go to the Token Verification Page.
-        """.format(st.session_state['token']), unsafe_allow_html=True)
-        
 
-    # Formulir input token
-    with st.form(key='token_form'):
-        input_token = st.text_input("Enter your token")
-        submit_token_button = st.form_submit_button(label='Submit Token')
-        
-        if submit_token_button and input_token:
-            credentials = get_credentials(input_token)
-            
-            if credentials:
-                url, username, password, created_at = credentials
-                
-                # Calculate remaining time
-                remaining_time = created_at + timedelta(days=5) - datetime.now()
-                remaining_hours = remaining_time.total_seconds() // 3600
-                
-                st.write(f"URL: {url}")
-                st.write(f"Username: {username}")
-                
-                masked_password = password[:2] + '*' * (len(password) - 2)
 
-                st.write(f"Password: {masked_password}")
-                st.write(f"Token will expire in {remaining_hours} hours")
-                st.write('---')
 
-                #tampilkan isi table
-                with st.expander("Table: 'users'"):
-                    view_table('user_data.db', 'users')
-            
-            else:
-                st.error("Invalid token. Please check your token.")
+    #Tombol Eksekusi Chat.py
+    # chat_button = st.button('Go to Chat')
+    # if chat_button:
+    #     import pages.chat as chat
+    #     chat.run()
 
-           
-
-    # Tombol logout
-    logout_button = st.button('Logout')
-    if logout_button:
-        st.session_state['token'] = None
-        st.session_state['logged_in'] = False
-        st.experimental_rerun() # Refresh halaman
 

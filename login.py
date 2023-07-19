@@ -8,6 +8,8 @@ import token_verification
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from socket import gaierror
+ 
+
 
 key = b'4Gpyw4r57coCTSULSqGcq2ywpECnRK3fkAHcJvWqc08='
 cipher_suite = Fernet(key)
@@ -75,43 +77,49 @@ def is_valid_url(url):
 
  
  
+ 
 
-if 'token' not in st.session_state or not st.session_state['token']:
+def run():
 
-    st.markdown("""
-                # Login to Odoo
-                """)
+     
+    if 'token' not in st.session_state or not st.session_state['token']:
 
-    with st.form(key='login_form'):
-        url = st.text_input("Odoo URL", value='https://erp.fujicon-japan.com')
-        db = st.text_input("Database", value='erp')
-        username = st.text_input("Username", value='andhi@fujicon-japan.com')
-        password = st.text_input("Password", type="password")
-        submit_button = st.form_submit_button(label='Login')
+        st.markdown("""
+                    # Login to Odoo
+                    """)
 
-        
-        if submit_button and is_valid_url(url) and db and username and password:
-            try:
-                user_id = verify_user(url, db, username, password)
-                if user_id:
-                    st.success("Login successful!")
-                    token = store_credentials(url, db, username, password)
-                    st.session_state['token'] = token
-                    st.write("Your token: ", token)
-                    st.session_state['logged_in'] = True
-                    st.experimental_rerun()
+        with st.form(key='login_form'):
+            url = st.text_input("Odoo URL", value='https://erp.fujicon-japan.com')
+            db = st.text_input("Database", value='erp')
+            username = st.text_input("Username", value='andhi@fujicon-japan.com')
+            password = st.text_input("Password", type="password")
+            submit_button = st.form_submit_button(label='Login')
+
+            
+            if submit_button and is_valid_url(url) and db and username and password:
+                try:
+                    user_id = verify_user(url, db, username, password)
+                    if user_id:
+                        st.success("Login successful!")
+                        token = store_credentials(url, db, username, password)
+                        st.session_state['token'] = token
+                        st.write("Your token: ", token)
+                        st.session_state['logged_in'] = True
+                        st.experimental_rerun()
+                        
                     
                 
-            
-                else:
-                    st.error("Login failed. Please check your credentials.")
-                    st.session_state['token'] = None
+                    else:
+                        st.error("Login failed. Please check your credentials.")
+                        st.session_state['token'] = None
 
-            except gaierror:
-                st.error("Failed to connect to the specified URL. Please check the URL and try again.")
+                except gaierror:
+                    st.error("Failed to connect to the specified URL. Please check the URL and try again.")
 
 
-if 'logged_in' in st.session_state and st.session_state['logged_in']:
-    token_verification.run()
-    
-  
+    if 'logged_in' in st.session_state and st.session_state['logged_in']:
+        token_verification.run()
+
+
+        
+      
