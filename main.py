@@ -6,6 +6,11 @@ import streamlit as st
 app = Flask(__name__)
 
 
+def webhook():
+  pass
+
+
+
 @app.route('/webhook', methods=['POST', 'GET'])
 def respond():
     if request.method == 'POST':
@@ -17,7 +22,8 @@ def hello_world():
     return 'Hello, World!'
 
 def run_flask():
-    app.run(port=5000)
+    #app.run(port=5000)
+    app.run(host='0.0.0.0', port=80)
 
 
 threading.Thread(target=run_flask).start()
@@ -29,6 +35,6 @@ def run_streamlit():
 
 threading.Thread(target=run_streamlit).start()
 
-if __name__ == '__main__':
-    app.run(debug=True)
-    # app.run(host='0.0.0.0', port=80)
+# if __name__ == '__main__':
+#     #app.run(debug=True)
+#     app.run(host='0.0.0.0', port=80)
