@@ -15,6 +15,7 @@ from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 import os
 
 import login
@@ -136,7 +137,7 @@ def run():
     # Session state storage would be ideal
     if API_O:
       # Create an OpenAI instance
-      llm = OpenAI(temperature=0,
+      llm = ChatOpenAI(temperature=0,
                    openai_api_key=API_O,
                    model_name=MODEL,
                    verbose=False)
