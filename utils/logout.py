@@ -1,13 +1,6 @@
 import streamlit as st  
 
-
 def run():
-    
-    st.markdown("""
-                # Logout
-                """)
-
-
     # Tombol logout
     logout_button = st.button('Logout')
     if logout_button:

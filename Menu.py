@@ -1,10 +1,13 @@
 import streamlit as st  
 # from pages import chat, login, logout, about, sidebar
 
-
+pages = {"About": "1_💬_Chat"}    
 
 # Set Streamlit page configuration
-st.set_page_config(page_title="Chat", page_icon="", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Chat", page_icon="", layout="wide", initial_sidebar_state="expanded", menu_items=pages)
+
+ 
+
 
 st.title("🤖 Odoo-GPT")
 st.subheader("Integrasi Odoo-Whatsapp dengan optimalisasi GPT-3.5")
@@ -26,3 +29,6 @@ Memanfaatkan kecanggihan GPT-3.5 dan kemudahan penggunaan Whatsapp, Odoo-GPT men
 - **Respon Pelanggan yang Lebih Cepat**: Dengan respon otomatis, pelanggan Anda mendapatkan balasan instan atas pertanyaan atau permintaan mereka.
 - **Kemudahan Penggunaan**: Dengan Whatsapp sebagai platform utama, penggunaan aplikasi ini menjadi sangat mudah dan akrab bagi kebanyakan orang.
 """)
+
+
+

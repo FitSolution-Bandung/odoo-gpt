@@ -3,8 +3,7 @@ import xmlrpc.client
 import sqlite3
 import hashlib
 from cryptography.fernet import Fernet
-from token_verification import get_credentials
-import token_verification
+import utils.token_verification as token_verification
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 from socket import gaierror
