@@ -1,12 +1,27 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import os
 import threading
 import streamlit as st
-import socket
+ 
+
+# ======= STREAMLIT =======
+
+def run_streamlit():
+    os.system("streamlit run Menu.py --server.port 8500")
+threading.Thread(target=run_streamlit).start()
+
+
+
+# ======= FLASK =======
+
 
 app = Flask(__name__)
 
 
+@app.route('/')
+def home():
+    url = 'http://localhost:8500'
+    return render_template('index.html', url=url)
 
 
 
@@ -16,9 +31,7 @@ def respond():
         print(request.json)
     return {'status': 'success'}
 
-@app.route('/')
-def hello_world():
-    return 'Hello, World!'
+
 
 def run_flask():
     #app.run(port=5000)
@@ -28,11 +41,3 @@ def run_flask():
 threading.Thread(target=run_flask).start()
 
 
-def run_streamlit():
-    os.system("streamlit run Menu.py --server.port 8500")
-  
-    
-    
-
-
-threading.Thread(target=run_streamlit).start()
