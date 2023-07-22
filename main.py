@@ -1,13 +1,10 @@
-from flask import Flask, request, render_template, send_from_directory
 import os
 import threading
 import streamlit as st
-from utils import whatsapp as wa
-
 from flask_sqlalchemy import SQLAlchemy
-
-from utils.database import init_app, db_sqlalchemy, app
-
+from flask import Flask, request, render_template, send_from_directory
+from utils.database import app, init_app, db_sqlalchemy
+from utils import whatsapp as wa
 
 
 # ======= STREAMLIT =======
@@ -22,9 +19,7 @@ threading.Thread(target=run_streamlit).start()
 
 # ======= FLASK =======
 # db_sqlalchemy = SQLAlchemy()
-
-
-
+app = Flask(__name__)
 
 @app.route('/')
 def home():
@@ -53,17 +48,11 @@ def send_image(filename):
 # Fungsi untuk webhook incoming messages
 @app.route("/webhook", methods=['POST'])
 def webhook():
-    # print("Incoming message")
     try:
         if request.method == 'POST':
-            if request.is_json:
-                data = request.get_json()
-                # print(str(data))
-                wa.handle_incoming_message(data)
-                # handle_incoming_message(data)
-                return '', 200
-            else:
-                return 'Unsupported Media Type', 415
+            data = request.get_json()
+            wa.handle_incoming_message(data)
+          
     except Exception as e:
         print(f"Error: {e}")
         return 'Internal Server Error', 500
