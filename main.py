@@ -73,7 +73,7 @@ def webhook():
 
 def run_flask():
     #app.run(port=5000)
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=5000)
 
 
 threading.Thread(target=run_flask).start()
