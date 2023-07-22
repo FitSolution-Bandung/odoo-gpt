@@ -1,3 +1,4 @@
 user_data.db
 *.pyc
 *.db
+__pycache__
