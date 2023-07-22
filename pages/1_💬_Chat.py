@@ -22,10 +22,6 @@ import utils.login as login
 
 
 
-
-
-
-
 def run():
 
     # Initialize session states
@@ -112,9 +108,6 @@ def run():
                           max_value=1000)
 
 
-      
-      
-
 
     #BODY
     # Set up the Streamlit app layout
@@ -132,7 +125,11 @@ def run():
 
     with st.expander("📝 ENTITY_MEMORY_CONVERSATION_TEMPLATE", expanded=False):
       st.write(ENTITY_MEMORY_CONVERSATION_TEMPLATE)
-      st.write(ConversationEntityMemory)
+      st.write('---')
+      
+
+      conversation = st.empty()
+
 
     # Session state storage would be ideal
     if API_O:
@@ -142,9 +139,16 @@ def run():
                    model_name=MODEL,
                    verbose=False)
 
+      
+      with conversation:
+        st.write(f'ConversationEntityMemory(llm=llm, k=K):  {ConversationEntityMemory(llm=llm, k=K)}') 
+
       # Create a ConversationEntityMemory object if not already created
       if 'entity_memory' not in st.session_state:
         st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
+
+
+
 
       # Create the ConversationChain object with the specified configuration
       Conversation = ConversationChain(llm=llm,
@@ -154,6 +158,8 @@ def run():
         st.sidebar.warning(
           'API key required to try this app.The API key is not stored in any form.')
         st.stop()
+
+
 
     #Kirim Pesan
     chat_history_expander = st.expander("💬 Chat History", expanded=True)
@@ -194,4 +200,3 @@ else:
     login.run()
 
 
-# run()

@@ -1,14 +1,11 @@
 import os
 import openai
-
-import ast
  
 import json
 import requests
 from typing import List, Optional
 from pydantic import BaseModel
-from flask import jsonify
-
+ 
  
 
 '''
@@ -18,14 +15,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db'
 db = SQLAlchemy(app)
 '''
  
-import config
-models = config.models
-db = config.db
-uid_context = config.uid_context
-uid = config.uid
-password = config.password
-url = config.url
-username = config.username
+# import config
+
+
+# models = config.models
+# db = config.db
+# uid_context = config.uid_context
+# uid = config.uid
+# password = config.password
+# url = config.url
+# username = config.username
 
 
 class BrowseQuery(BaseModel):

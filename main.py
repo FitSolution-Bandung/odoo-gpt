@@ -4,9 +4,9 @@ import threading
 import streamlit as st
 from utils import whatsapp as wa
 
+from flask_sqlalchemy import SQLAlchemy
 
-
-
+from utils.database import init_app, db_sqlalchemy, app
 
 
 
@@ -18,10 +18,12 @@ threading.Thread(target=run_streamlit).start()
 
 
 
+
+
 # ======= FLASK =======
+# db_sqlalchemy = SQLAlchemy()
 
 
-app = Flask(__name__)
 
 
 @app.route('/')

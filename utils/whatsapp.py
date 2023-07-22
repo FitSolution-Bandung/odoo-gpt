@@ -1,50 +1,39 @@
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
+
+import os
+import re
+import json
+
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-import json
-import os
- 
-from flask import jsonify
+
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
-from flask import request
-from flask_sqlalchemy import SQLAlchemy
-from flask_openapi3 import OpenAPI, Info
+
+from utils.get_credential import get_credentials, is_valid_token
+from langchain.chat_models import ChatOpenAI
+# from langchain.chains import ConversationChain
+from langchain.chains.conversation.memory import ConversationEntityMemory
+from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
+
+from typing import Optional
+
+
+from utils.database import init_app, db_sqlalchemy, app
+from utils.database import User as User
+from utils.database import Message as Message
+
+
  
-
-# === Database ==== 
-
-
-
-info = Info(title="Odoo API", version="1.0.0")
-app = OpenAPI(__name__, info=info, static_folder='.')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db'
-
-db_sqlalchemy = SQLAlchemy(app)
-
-class Message(db_sqlalchemy.Model):
-    __tablename__ = "message"
-
-    id = db_sqlalchemy.Column(db_sqlalchemy.Integer, primary_key=True)
-    #message_id = db_sqlalchemy.Column(db_sqlalchemy.String, nullable=False)  # Add this line
-    phone_number = db_sqlalchemy.Column(db_sqlalchemy.String(20), nullable=False)
-    message = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=False)
-    result = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=True)
-    incoming = db_sqlalchemy.Column(db_sqlalchemy.Boolean, default=True)
-
-
-    def __init__(self, phone_number, message, result=None, incoming=False):
-        self.phone_number = phone_number
-        self.message = message
-        self.result = result
-        self.incoming = incoming
 
 
 
 # Fungsi untuk mengirim pesan WhatsApp menggunakan API Wablas
 def send_whatsapp_message(phone_number, message):
     url = "https://pati.wablas.com/api/v2/send-message"
-    token = os.environ[
-    'WABLAS TOKEN']  # Mengambil token dari environment variable
+    token = os.environ['WABLAS TOKEN']  # Mengambil token dari environment variable
 
     headers = {"Authorization": token, "Content-Type": "application/json"}
 
@@ -63,9 +52,12 @@ def send_whatsapp_message(phone_number, message):
     return result
 
 
+
+
 # Fungsi untuk menangani pesan masuk dari webhook
 def handle_incoming_message(data):
-      
+     
+    incoming_message = ""
 
     try:
         phone = data.get('phone', None)  # Mengambil nomor telepon pengirim pesan
@@ -73,29 +65,78 @@ def handle_incoming_message(data):
         message = ""
         # messageType = data.get('messageType', None)  # Mengambil tipe pesan 
 
-        if phone == "628112227980":
-            data_str = ""
-            for key, value in data.items():
-                if value not in [None, ""]:
-                    data_str += f"{key}: {value}" + "\n"  
-            message = data_str
-            
+    
+        data_str = ""
+        for key, value in data.items():
+            if value not in [None, ""]:
+                data_str += f"{key}: {value}" + "\n"  
+        
+
+        
+        print(f'Pesan masuk dari {phone}: {incoming_message}')
+        print(f"Format sesuai? {re.match(r'^[0-9a-fA-F]{64}$', incoming_message)}")
+        
+        with app.app_context():
+            user = User.query.filter_by(phone_number=phone).first()
+            if not user:
+                user = User(phone_number=phone, entity_memory=None)
+                db_sqlalchemy.session.add(user)
+                db_sqlalchemy.session.commit()
+
+
+
+        #Check apakah token valid?
+        msg = ""
+        if is_valid_token(incoming_message) is True:
+            credentials = get_credentials(incoming_message)
+
+            if credentials:
+                url, username, password, created_at, mobile_phone = credentials
+                # Calculate remaining time
+                remaining_time = created_at + timedelta(days=5) - datetime.now()
+                remaining_hours = remaining_time.total_seconds() // 3600
+
+                message = f"""
+                Nama modul: Whatsap.py\n\n
+                URL: {url}\nUsername: {username}\nPassword: ***\nMobile Phone: {mobile_phone}\nCreated At: {created_at}\nToken will expire in {remaining_hours} hours"""
+                msg = f"\n\ninfo:\n{message}"               
         else:
-            message = ""
+            message = "Invalid token. Please check your token."
+        
+        print(f'Respon dikirim ke {phone} : {message}\n')
+        
+        if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
+            message = prepare_message(phone, incoming_message) + msg
+            send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
 
-
-
-        #Check Token
         
 
 
+        #Tulis record ke database 
+        if incoming_message:
+            
+            msg = Message(user_id=1,
+                        user_name=data['sender'],
+                        sender=data['sender'],
+                        recipient=data['phone'],
+                        past=incoming_message,
+                        generated=message)
+            with app.app_context():
+                db_sqlalchemy.session.add(msg)  # Menambahkan objek pesan masuk ke database
+                db_sqlalchemy.session.commit()  # Menyimpan perubahan ke database
 
+            #Pesan bila berhasil ditambahkan ke database
+            print(f"Message from {phone} added to database")
+             
 
-        print(f'Pesan dikirim : {message}')
-        
-        send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
+        #tampilkan isi database yang barusan di tambahkan db_sqlalchemy.
+             
 
-        
+        with app.app_context():
+            message = Message.query.all()
+            print(f'All messages: {message}')
+
+ 
         
         return jsonify({'status': 'success', 'phone': phone})
 
@@ -103,6 +144,86 @@ def handle_incoming_message(data):
         print(f"Error: {e}")
         raise
    
+
+
+# Fungsi untuk mendapatkan respon dari model chatgpt
+def prepare_message(phone, incoming_message):
+    session_state = {
+    'past': [],
+    'generated': []
+    }
+    
+    
+    
+
+
+
+    # Set the default model and K value
+    MODEL = 'gpt-3.5-turbo'
+    K = 5
+    API_O = os.environ['OPENAI_KEY']
+
+
+    # Session state storage would be ideal
+    if API_O:
+        # Create an OpenAI instance
+        llm = ChatOpenAI(temperature=0,
+                    openai_api_key=API_O,
+                    model_name=MODEL,
+                    verbose=False)
+
+        # # Create a ConversationEntityMemory object if not already created
+        # if 'entity_memory' not in st.session_state:
+        #     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
+        entity_memory = ConversationEntityMemory(llm=llm, k=K)
+
+
+        print(f'\n\nENTITY_MEMORY_CONVERSATION_TEMPLATE: {ENTITY_MEMORY_CONVERSATION_TEMPLATE}')
+
+        print(f'\n\nConversationEntityMemory: {ConversationEntityMemory}')
+
+        # Create the ConversationChain object with the specified configuration
+        Conversation = ConversationChain(llm=llm,
+                                       prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
+                                       memory=entity_memory)
+    
+
+    # session_state = []
+    # past = session_state["past"]
+    # generated = session_state["generated"]
+
+        # if len(past) > 0:
+        #     for i in range(0, len(generated)):
+        #         with st.chat_message(name="User", avatar="🧑‍💻"):
+        #             st.write(past[i])
+
+        #         with st.chat_message(name="Odoo-GPT", avatar="🤖"):
+        #                 st.write(generated[i])
+     
+
+        # with st.chat_message(name="User", avatar="🧑‍💻"):
+        #    st.write(user_input)
+
+        # with st.chat_message(name="Odoo-GPT", avatar="🤖"):
+        #     with st.spinner("Memuat Respon ..."):
+        output = Conversation.run(input=incoming_message)
+        print(f'Output: {output}')
+
+        # Tambahkan pesan ke database
+        # message = Message(sender="user", recipient="bot", past=incoming_message, generated=output, user=user)
+        # db_sqlalchemy.session.add(message)
+
+        # Perbarui entity_memory
+        # user.entity_memory = output  # Sesuaikan ini sesuai dengan kebutuhan Anda
+
+
+  
+
+     
+
+
+    return output
+    
 
 
 # def prepare_message(message, phone, model='chatgpt'):

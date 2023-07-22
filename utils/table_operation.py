@@ -1,8 +1,21 @@
 import sqlite3
 import streamlit as st  
 
+#Drop table
+def drop_table(db_name, table_name):
+    con = sqlite3.connect(db_name)
+    cursor = con.cursor()
+    
+    cursor.execute(f"DROP TABLE IF EXISTS {table_name};")
+    con.commit()
+    
+    print(f"Table '{table_name}' has been dropped.")
+        
+    con.close()
 
 
+#drop_table('user_data.db', 'users')
+# drop_table('user_data.db', 'message')
     
 #Lihat isi  database di sqlite
 def view_tables(db_name):
@@ -14,8 +27,15 @@ def view_tables(db_name):
     
     for table in tables:
         st.write(f"Table name: {table[0]}")
+        print(f"Table name: {table[0]}")
+
+     
         
     con.close()
+
+# view_tables('user_data')
+
+
 
 #Lihat isi table
 def view_table(db_name, table_name):
@@ -27,8 +47,11 @@ def view_table(db_name, table_name):
     
     for row in rows:
         st.write(row)
+        print(row)
    
     con.close()
+
+# view_table('user_data.db', 'users')
 
 
 
@@ -44,18 +67,19 @@ def clear_table(db_name, table_name):
     
     con.close()
 
+# clear_table('user.db', 'users')
 
 
-
-def add_mobile_phone_column():
+def add_column(column_to_add):
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
 
     # Menambahkan kolom mobile_phone
-    c.execute("ALTER TABLE users ADD COLUMN mobile_phone text")
+    c.execute(f"ALTER TABLE users ADD COLUMN {column_to_add} text")
 
     conn.commit()
     conn.close()
 
 # add_mobile_phone_column()
 # clear_table('user_data.db', 'users')
+# add_column('username')
