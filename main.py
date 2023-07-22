@@ -1,8 +1,14 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_from_directory
 import os
 import threading
 import streamlit as st
- 
+from utils import whatsapp as wa
+
+
+
+
+
+
 
 # ======= STREAMLIT =======
 
@@ -25,11 +31,41 @@ def home():
 
 
 
-@app.route('/webhook', methods=['POST', 'GET'])
-def respond():
-    if request.method == 'POST':
-        print(request.json)
-    return {'status': 'success'}
+# Fungsi untuk akses ke file gambar
+@app.route('/images/<filename>')
+def send_image(filename):
+    return send_from_directory('static/images', filename)
+
+
+
+
+# @app.route('/webhook', methods=['POST', 'GET'])
+# def respond():
+#     if request.method == 'POST':
+#         print(request.json)
+#     return {'status': 'success'}
+
+
+# handle_incoming_message = wa.handle_incoming_message()
+
+# Fungsi untuk webhook incoming messages
+@app.route("/webhook", methods=['POST'])
+def webhook():
+    # print("Incoming message")
+    try:
+        if request.method == 'POST':
+            if request.is_json:
+                data = request.get_json()
+                # print(str(data))
+                wa.handle_incoming_message(data)
+                # handle_incoming_message(data)
+                return '', 200
+            else:
+                return 'Unsupported Media Type', 415
+    except Exception as e:
+        print(f"Error: {e}")
+        return 'Internal Server Error', 500
+
 
 
 
@@ -39,5 +75,3 @@ def run_flask():
 
 
 threading.Thread(target=run_flask).start()
-
-

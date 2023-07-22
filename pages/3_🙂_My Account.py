@@ -3,39 +3,23 @@ import utils.login as login
 import utils.logout as logout
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
-import sqlite3
-from utils.token_verification import view_table
 
-# Anda harus mengubah ini dengan kunci yang Anda gunakan untuk enkripsi password
-key = b'4Gpyw4r57coCTSULSqGcq2ywpECnRK3fkAHcJvWqc08='
+from utils.table_operation import view_table
+import os
+import utils.get_credential as cr
 
-cipher_suite = Fernet(key)
+# # Password encryption
+# key = os.getenv("ENCRYPT_KEY").encode()
 
-def get_credentials(token):
-    conn = sqlite3.connect('user_data.db')
-    c = conn.cursor()
-    c.execute("SELECT url, username, password, created_at FROM users WHERE token = ?", (token,))
-    result = c.fetchone()
-    conn.close()
 
-    if result:
-        url, username, password_encrypted, created_at = result
-        created_at = datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S")
-        
-        # Check if the token has expired
-        if datetime.now() - created_at > timedelta(days=5):
-            print('Token has expired')
-            return None
+# #print key
+# print(f'ENCRYPT_KEY: {key}')
 
-        # Decrypt password
-        password = cipher_suite.decrypt(password_encrypted).decode()
 
-        return url, username, password, created_at
+# cipher_suite = Fernet(key)
 
-    else:
-        print(f'No user found with token: {token}')
-        return None
-    
+
+
 
 
 def run():
@@ -44,6 +28,7 @@ def run():
 
     st.markdown("""
         # You are loged in.
+                   
         :information_source: Here is your token.
         Please copy your token and paste it in the field below to verify it. 
     """)
@@ -51,20 +36,23 @@ def run():
             
     # Formulir input token
     with st.form(key='token_form'):
-        input_token = st.text_input("Detail Account", value=token)
+        input_token = token
+        st.code(token)
         submit_token_button = st.form_submit_button(label='Show Credentials')
         
         if submit_token_button and input_token:
-            credentials = get_credentials(input_token)
+            credentials = cr.get_credentials(input_token)
             if credentials:
-                url, username, password, created_at = credentials
+                url, username, password, created_at, mobile_phone = credentials
                 
                 # Calculate remaining time
                 remaining_time = created_at + timedelta(days=5) - datetime.now()
                 remaining_hours = remaining_time.total_seconds() // 3600
                 
+                st.write('Detail Account:')
                 st.write(f"URL: {url}")
                 st.write(f"Username: {username}")
+                st.write(f"Work Mobile: {mobile_phone}")
                     
                 masked_password = password[:2] + '*' * (len(password) - 2)
 

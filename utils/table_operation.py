@@ -47,4 +47,15 @@ def clear_table(db_name, table_name):
 
 
 
+def add_mobile_phone_column():
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
 
+    # Menambahkan kolom mobile_phone
+    c.execute("ALTER TABLE users ADD COLUMN mobile_phone text")
+
+    conn.commit()
+    conn.close()
+
+# add_mobile_phone_column()
+# clear_table('user_data.db', 'users')
