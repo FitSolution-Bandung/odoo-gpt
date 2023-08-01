@@ -9,14 +9,15 @@ import json
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
-from langchain.memory import ConversationBufferWindowMemory
-
 from utils.get_credential import get_credentials, is_valid_token
+
+from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
-# from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
+
+# from langchain.memory import ConversationBufferWindowMemory
+# from langchain.chains import ConversationChain
 
 from typing import Optional
 
@@ -24,6 +25,9 @@ from typing import Optional
 from utils.database import init_app, db_sqlalchemy, app
 from utils.database import User as User
 from utils.database import Message as Message
+from utils.database import write_chat_to_db
+
+from pprint import pprint
 
 
  
@@ -56,9 +60,7 @@ def send_whatsapp_message(phone_number, message):
 
 # Fungsi untuk menangani pesan masuk dari webhook
 def handle_incoming_message(data):
-     
-    incoming_message = ""
-
+    credentials = None
     try:
         phone = data.get('phone', None)  # Mengambil nomor telepon pengirim pesan
         incoming_message = data.get('message', None)  # Mengambil isi pesan
@@ -74,67 +76,77 @@ def handle_incoming_message(data):
 
         
         print(f'Pesan masuk dari {phone}: {incoming_message}')
-        print(f"Format sesuai? {re.match(r'^[0-9a-fA-F]{64}$', incoming_message)}")
         
+        
+
+        #chek apakah nomor telepon sudah ada di database
         with app.app_context():
             user = User.query.filter_by(phone_number=phone).first()
-            if not user:
-                user = User(phone_number=phone, entity_memory=None)
+
+            if user:
+                msg = ""
+                #lakukan pengecekan apabila format pesan masuk sesuai dengan format token
+                if re.match(r'^[0-9a-fA-F]{64}$', incoming_message):
+                    #Check apakah token valid ketika pesan masuk sama dengan token yang ada di database
+                    
+                    credentials = get_credentials(incoming_message)
+                    print(f'Credentials: {credentials}')    
+                    print(f"Format sesuai? {re.match(r'^[0-9a-fA-F]{64}$', incoming_message)}")
+
+                    if credentials is not None:
+                        url, username, password, created_at, mobile_phone = credentials
+                        # Calculate remaining time
+                        remaining_time = created_at + timedelta(days=5) - datetime.now()
+                        remaining_hours = remaining_time.total_seconds() // 3600
+
+                        msg = f"""Terimakasih Token anda sudah diverifikasi.\n\nURL: {url}\nUsername: {username}\nPassword: ***\nMobile Phone: {mobile_phone}\nCreated At: {created_at}\nToken will expire in {remaining_hours} hours"""
+                        msg += "\n\nApakah ada yang bisa saya bantu?"            
+
+                    else:
+                        msg = "Invalid token. Please check your token."
+           
+
+                    message = msg
+                    send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
+                    print(f'Pesan hasil pengecekan Token: {msg}')
+                    exit()
+
+
+                
+            
+            
+            else:
+                
+                user = User(phone_number=phone)
                 db_sqlalchemy.session.add(user)
                 db_sqlalchemy.session.commit()
 
+       
+        # if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
+        if phone and incoming_message:    
 
-
-        #Check apakah token valid?
-        msg = ""
-        if is_valid_token(incoming_message) is True:
-            credentials = get_credentials(incoming_message)
-
-            if credentials:
-                url, username, password, created_at, mobile_phone = credentials
-                # Calculate remaining time
-                remaining_time = created_at + timedelta(days=5) - datetime.now()
-                remaining_hours = remaining_time.total_seconds() // 3600
-
-                message = f"""
-                Nama modul: Whatsap.py\n\n
-                URL: {url}\nUsername: {username}\nPassword: ***\nMobile Phone: {mobile_phone}\nCreated At: {created_at}\nToken will expire in {remaining_hours} hours"""
-                msg = f"\n\ninfo:\n{message}"               
-        else:
-            message = "Invalid token. Please check your token."
-        
-        print(f'Respon dikirim ke {phone} : {message}\n')
-        
-        if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
-            message = prepare_message(phone, incoming_message) + msg
+            message = prepare_message(phone, incoming_message)
+            
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
 
         
 
 
+
+
+
         #Tulis record ke database 
         if incoming_message:
-            
-            msg = Message(user_id=1,
-                        user_name=data['sender'],
-                        sender=data['sender'],
-                        recipient=data['phone'],
-                        past=incoming_message,
-                        generated=message)
-            with app.app_context():
-                db_sqlalchemy.session.add(msg)  # Menambahkan objek pesan masuk ke database
-                db_sqlalchemy.session.commit()  # Menyimpan perubahan ke database
-
+            sender = "62811XXXX"
+            write_chat_to_db(phone, incoming_message, sender, message)
             #Pesan bila berhasil ditambahkan ke database
             print(f"Message from {phone} added to database")
              
+              
 
-        #tampilkan isi database yang barusan di tambahkan db_sqlalchemy.
-             
-
-        with app.app_context():
-            message = Message.query.all()
-            print(f'All messages: {message}')
+        # with app.app_context():
+        #     message = Message.query.all()
+        #     print(f'All messages: {message}')
 
  
         
@@ -146,6 +158,8 @@ def handle_incoming_message(data):
    
 
 
+
+
 # Fungsi untuk mendapatkan respon dari model chatgpt
 def prepare_message(phone, incoming_message):
     session_state = {
@@ -154,13 +168,9 @@ def prepare_message(phone, incoming_message):
     }
     
     
-    
-
-
-
     # Set the default model and K value
     MODEL = 'gpt-3.5-turbo'
-    K = 5
+    K = 10
     API_O = os.environ['OPENAI_KEY']
 
 
@@ -175,88 +185,90 @@ def prepare_message(phone, incoming_message):
         # # Create a ConversationEntityMemory object if not already created
         # if 'entity_memory' not in st.session_state:
         #     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
-        entity_memory = ConversationEntityMemory(llm=llm, k=K)
+
+        #chek apakah nomor telepon sudah ada di database
+ 
+        with app.app_context():
+            user_query = User.query.filter_by(phone_number=phone).first()
+            buf_memory = user_query.entity_memory
 
 
-        print(f'\n\nENTITY_MEMORY_CONVERSATION_TEMPLATE: {ENTITY_MEMORY_CONVERSATION_TEMPLATE}')
 
-        print(f'\n\nConversationEntityMemory: {ConversationEntityMemory}')
 
+        if buf_memory is None:
+            memory = ConversationEntityMemory(llm=llm, k=K)
+        else:
+
+             
+            entity_memory_dict = buf_memory
+            print(f'\n\nGetMemory from DB: {entity_memory_dict}\n\n')
+
+
+            memory = ConversationEntityMemory(llm=llm, k=K, store=entity_memory_dict)
+            # memory = entity_memory_dict
+
+        
+        # memory.entity_store.store
+
+        # def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
+
+
+            #   ("Bandung", "Bandung adalah kota yang indah")
+
+        
+        print(f'\n\nGetMemory from DB: {memory}\n\n')
+         
+            #simpan entity memory ke record user
+            # entity_memory = ConversationEntityMemory(llm=llm, k=K, store=entity_memory_dict)
+        
+ 
         # Create the ConversationChain object with the specified configuration
         Conversation = ConversationChain(llm=llm,
                                        prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-                                       memory=entity_memory)
+                                       memory=memory,
+                                       verbose=True)
     
-
-    # session_state = []
-    # past = session_state["past"]
-    # generated = session_state["generated"]
-
-        # if len(past) > 0:
-        #     for i in range(0, len(generated)):
-        #         with st.chat_message(name="User", avatar="🧑‍💻"):
-        #             st.write(past[i])
-
-        #         with st.chat_message(name="Odoo-GPT", avatar="🤖"):
-        #                 st.write(generated[i])
-     
-
-        # with st.chat_message(name="User", avatar="🧑‍💻"):
-        #    st.write(user_input)
-
-        # with st.chat_message(name="Odoo-GPT", avatar="🤖"):
-        #     with st.spinner("Memuat Respon ..."):
-        output = Conversation.run(input=incoming_message)
-        print(f'Output: {output}')
-
-        # Tambahkan pesan ke database
-        # message = Message(sender="user", recipient="bot", past=incoming_message, generated=output, user=user)
-        # db_sqlalchemy.session.add(message)
-
-        # Perbarui entity_memory
-        # user.entity_memory = output  # Sesuaikan ini sesuai dengan kebutuhan Anda
+        output = Conversation.predict(input=incoming_message)
+        # buf_memory = Conversation.memory.entity_store.store
+        buf_memory = Conversation.memory
+        print(f'buf_memory: {buf_memory}')
 
 
-  
+        pprint(buf_memory)
 
-     
 
+        #Save updated entities to database
+        with app.app_context():
+            user_query = User.query.filter_by(phone_number=phone).first()
+
+            if user_query is None:
+                print(f"No user found with phone: {phone}")
+            else:
+                try:
+                    
+                    try:
+                        # user_query.entity_memory = str(buf_memory)
+                        buf_memory = buf_memory.__dict__
+                    
+                    except:
+                        pass
+
+                    user_query.entity_memory = str(buf_memory)
+
+
+                    db_sqlalchemy.session.commit()
+                    print(f"Successfully updated entity memory for user with phone: {phone}")
+                except Exception as e:
+                    print(f"Failed to update entity memory: {str(e)}")
+
+            # user.entity_memory = str(entity_store)
+            # db_sqlalchemy.session.commit()
+
+            # # user = User.query.filter_by(phone_number=phone).first()
+
+            print(f'\n\nEntity Store to DB: {user_query.entity_memory} -- Type: {type(user_query.entity_memory)}\n\n')
+      
+ 
 
     return output
     
-
-
-# def prepare_message(message, phone, model='chatgpt'):
-#     try:
-#         if model == 'chatgpt':
-#           message_response = get_chatgpt_response(phone, message)
-#         else:
-#           message_response = get_langchain_response(message)
-
-#         # Mengirim pesan balasan menggunakan WhatsApp
-#         send_whatsapp_message(phone, message_response)  # Mengirim respon ke pengirim pesan
-
-#         if phone and message:
-#             incoming = True
-#             msg = Message(phone_number=phone,
-#                         message=message,
-#                         result="Incoming message",
-#                         incoming=incoming)  # Membuat objek pesan masuk
-#             db_sqlalchemy.session.add(
-#             msg)  # Menambahkan objek pesan masuk ke database
-#             db_sqlalchemy.session.commit()  # Menyimpan perubahan ke database
-    
-#     except Exception as e:
-#         print(f"Error: {e}")
-#         message_response = "Maaf, terjadi kesalahan pada sistem.\n\n" + str(e)
-
-#         send_whatsapp_message(phone, message_response)
-#         incoming = True
-#         msg = Message(phone_number=phone,
-#                       message=message,
-#                       result="Error",
-#                       incoming=incoming)  # Membuat objek pesan masuk
-        
-
-#         db_sqlalchemy.session.add(msg)  # Menambahkan objek pesan masuk ke database
-#         db_sqlalchemy.session.commit()  # Menyimpan perubahan ke database

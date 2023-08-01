@@ -1,18 +1,19 @@
 import streamlit as st
 import xmlrpc.client
 import hashlib
+import os
 from cryptography.fernet import Fernet
-
+from flask_sqlalchemy import SQLAlchemy
+from utils.database import User, db_sqlalchemy, app
 from datetime import datetime
 from urllib.parse import urlparse
 from socket import gaierror
+from utils.get_credential import get_credentials, is_valid_token
+from datetime import datetime
 
-from flask_sqlalchemy import SQLAlchemy
-
-from utils.database import User, db_sqlalchemy, app
-
-
-key = b'4Gpyw4r57coCTSULSqGcq2ywpECnRK3fkAHcJvWqc08='
+# Password encryption
+key = os.getenv("ENCRYPT_KEY").encode()
+# key = b'4Gpyw4r57coCTSULSqGcq2ywpECnRK3fkAHcJvWqc08='
 cipher_suite = Fernet(key)
 
 
@@ -41,6 +42,16 @@ def verify_user(url, db, username, password):
 
 def store_credentials(url, db, username, password):
     token = hashlib.sha256((url + db + username + password).encode()).hexdigest()
+    st.session_state['token'] = token
+
+    credentials = get_credentials(token)
+
+    if credentials:
+
+        url, username, password, created_at, mobile_phone = credentials
+        st.session_state['credentials'] = credentials
+
+
 
     password_encrypted = cipher_suite.encrypt(password.encode())
 
@@ -55,21 +66,16 @@ def store_credentials(url, db, username, password):
 
     with app.app_context():
         # Cari User dengan url, db, dan username yang sama
-        user_query = User.query.filter_by(url=url, db=db, username=username).first()
+        user_query = User.query.filter_by(phone_number=mobile_phone).first()
         print(f'User: {user_query}')
 
 
        
-        ##Proses penyimpanan data ke database
-
-        # Cari User dengan url, db, dan username yang sama
-        # user_query = User.query.filter_by(url=url, db=db, username=username).first()
-        # print(f'User: {user_query}')
         if user_query is None:
             # Jika User belum ada, buat User baru
             print(f'url: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\nmobile_phone: {mobile_phone}\nnick_name: {nick_name} ')
 
-            user_query = User(url=url, db=db, username=username, password=password_encrypted, token=token, phone_number=mobile_phone, nick_name=nick_name)
+            user_query = User(url=url, db=db, username=username, password=password_encrypted, token=token, phone_number=mobile_phone, nick_name=nick_name, created_at=datetime.strptime(now, '%Y-%m-%d %H:%M:%S'))
             db_sqlalchemy.session.add(user_query)
             db_sqlalchemy.session.commit()
         else:
@@ -78,7 +84,10 @@ def store_credentials(url, db, username, password):
             user_query.token = token
             user_query.phone_number = mobile_phone
             user_query.nick_name = nick_name
-            print(f'Mau di update \n\nurl: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\phone_number: {mobile_phone}\nnick_name: {nick_name} ')
+            user_query.created_at = datetime.strptime(now, '%Y-%m-%d %H:%M:%S')
+
+
+            print(f'Mau di update \n\nurl: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\nphone_number: {mobile_phone}\nnick_name: {nick_name} ')
 
             db_sqlalchemy.session.commit()
 
@@ -104,10 +113,34 @@ def run():
             db = st.text_input("Database", value='erp')
             username = st.text_input("Username", value='andhi@fujicon-japan.com')
             password = st.text_input("Password", type="password")
+           
+            #Atau cukup masukan Token yang sudah diperoleh sebelumnya.
+            token = st.text_input("**Or just put your Token here and push \"Login\" button below:**", type="password")
+            
             submit_button = st.form_submit_button(label='Login')
 
-            if submit_button and is_valid_url(url) and db and username and password:
+               
+
+
+            
+            if (submit_button and is_valid_url(url) and db and username and password) or token:
+
+                print(f'token: {token}')
+
+
+                # give credentials to automaticly login if token is valid
+                if token:
+                    credentials = get_credentials(token)
+                    print(f'credentials: {credentials}')
+
+                    if credentials:
+                        url, username, password, created_at, mobile_phone = credentials
+
+            
+
+                
                 try:
+                    # Verify user credentials and get user ID from Odoo
                     user_id = verify_user(url, db, username, password)
 
                     print(f'User ID: {str(user_id)}')

@@ -16,14 +16,116 @@ from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
+from utils.get_credential import get_credentials, is_valid_token
+ 
 import os
+import textwrap
 
 import utils.login as login
+import utils.sidebar as sidebar
+import utils.whatsapp as wa
+
+from utils.database import Message, User, db_sqlalchemy, app, write_chat_to_db
+
+
+  
+
+def new_chat():
+  """
+    Clears session state and starts a new chat.
+    """
+  save = []
+  for i in range(0, len(st.session_state['generated'])):
+    save.append("User:" + st.session_state["past"][i])
+    save.append("Odoo-GPT:" + st.session_state["generated"][i])
+
+  st.session_state["stored_session"].append(save)
+  st.session_state["generated"] = []
+  st.session_state["past"] = []
+  st.session_state["input"] = ""
+  st.session_state.entity_memory.entity_store = {}
+  st.session_state.entity_memory.buffer.clear()
+
+
+def show_chat_histories(user_input=None):
+      
+      
+      
+    credentials= st.session_state['credentials']
+    if credentials is not None:
+        url, username, password, created_at, mobile_phone = credentials
+
+        sender = mobile_phone
+
+
+
+    with app.app_context():
+      messages = Message.query.all()
+    
+    mobile_phones = set()
+    for msg in messages:
+       mobile_phones.add(msg.recipient) 
+    
+    print(f'nomor telp user: {mobile_phones}')
+
+    for mobile_phone in mobile_phones:
+       #Extract all messages from the database
+        with app.app_context():
+            messages = Message.query.filter_by(recipient=mobile_phone).order_by(Message.id).all()
+            
+
+        past = []
+        generated = []
+
+        for message in messages:
+            past.append(message.past)
+            generated.append(message.generated)
+
+
+
+
+    if len(messages) > 0:
+        for i in range(0, len(messages)):
+            with st.chat_message(name="User", avatar="🧑‍💻"):
+                st.write(f"{past[i]}")
+
+            with st.chat_message(name="Odoo-GPT", avatar="🤖"):
+                    st.write(f"{generated[i]}")
+ 
+    if user_input:
+        with st.chat_message(name="User", avatar="🧑‍💻"):
+           st.write(user_input)
+
+        with st.chat_message(name="Odoo-GPT", avatar="🤖"):
+            with st.spinner("Memuat Respon ..."):
+                # output = Conversation.run(input=user_input)
+                output = wa.prepare_message(mobile_phone, user_input)
+
+            st.write(output)
+
+
+    # Tambahkan pesan pengguna dan respon bot ke database
+    # write_chat_to_db(recipient, past, sender, generated)
+     
+        past = user_input
+        recipient = mobile_phone
+      
+        write_chat_to_db(recipient, past, sender, output)
+      
+
+
+      # st.session_state["past"].append(user_input)
+      # st.session_state["generated"].append(output)
+   
+
 
 
 
 def run():
+    sidebar.run()
 
+
+                     
     # Initialize session states
     if "generated" not in st.session_state:
       st.session_state["generated"] = []
@@ -35,54 +137,16 @@ def run():
       st.session_state["stored_session"] = []
     if "download_str" not in st.session_state:
       st.session_state["download_str"] = []
+    if "token" not in st.session_state:
+      st.session_state["token"] = []
+    if "credentials" not in st.session_state:
+      st.session_state["credentials"] = []
+
+ 
 
 
     # Define function to start a new chat
-    def new_chat():
-      """
-        Clears session state and starts a new chat.
-        """
-      save = []
-      for i in range(0, len(st.session_state['generated'])):
-        save.append("User:" + st.session_state["past"][i])
-        save.append("Odoo-GPT:" + st.session_state["generated"][i])
-
-      st.session_state["stored_session"].append(save)
-      st.session_state["generated"] = []
-      st.session_state["past"] = []
-      st.session_state["input"] = ""
-      st.session_state.entity_memory.entity_store = {}
-      st.session_state.entity_memory.buffer.clear()
-
-
-    def show_chat_histories(user_input):
-        
-        past = st.session_state["past"]
-        generated = st.session_state["generated"]
-
-        if len(past) > 0:
-            for i in range(0, len(generated)):
-                with st.chat_message(name="User", avatar="🧑‍💻"):
-                    st.write(past[i])
-
-                with st.chat_message(name="Odoo-GPT", avatar="🤖"):
-                        st.write(generated[i])
-     
-
-        with st.chat_message(name="User", avatar="🧑‍💻"):
-           st.write(user_input)
-
-        with st.chat_message(name="Odoo-GPT", avatar="🤖"):
-            with st.spinner("Memuat Respon ..."):
-                output = Conversation.run(input=user_input)
-
-            st.write(output)
-
-        st.session_state["past"].append(user_input)
-        st.session_state["generated"].append(output)
-     
-
-
+    
     # sidebar
 
     #SIDEBAR
@@ -113,51 +177,57 @@ def run():
     # Set up the Streamlit app layout
     
     # Ask the user to enter their OpenAI API key
-    API_O = st.sidebar.text_input("API-KEY", type="password")
+    # API_O = st.sidebar.text_input("API-KEY", type="password")
 
-    if API_O == "":
-      # API_O = os.environ['OPENAI_KEY']
+    # if API_O == "":
+    #   # API_O = os.environ['OPENAI_KEY']
       
-      API_O = os.environ['OPENAI_KEY']
-      st.info(f"""
-          Saat ini menggunakan API-KEY default.             
-          """)
+    #   API_O = os.environ['OPENAI_KEY']
+    #   st.info(f"""
+    #       Saat ini menggunakan API-KEY default.             
+    #       """)
 
-    with st.expander("📝 ENTITY_MEMORY_CONVERSATION_TEMPLATE", expanded=False):
-      st.write(ENTITY_MEMORY_CONVERSATION_TEMPLATE)
-      st.write('---')
+    # with st.expander("📝 Debug Information", expanded=False):
+    #   credentials = st.session_state['credentials']
+    #   if credentials is not None:
+    #     url, username, password, created_at, mobile_phone = credentials
+
+    #   st.write(f'**ENTITY_MEMORY_CONVERSATION_TEMPLATE:**\n\n{str(ENTITY_MEMORY_CONVERSATION_TEMPLATE)}')
+    #   st.write('---')
       
+    #   debug = st.empty()
 
-      conversation = st.empty()
 
-
-    # Session state storage would be ideal
-    if API_O:
-      # Create an OpenAI instance
-      llm = ChatOpenAI(temperature=0,
-                   openai_api_key=API_O,
-                   model_name=MODEL,
-                   verbose=False)
+    # # Session state storage would be ideal
+    # if API_O:
+    #   # Create an OpenAI instance
+    #   llm = ChatOpenAI(temperature=0,
+    #                openai_api_key=API_O,
+    #                model_name=MODEL,
+    #                verbose=False)
 
       
-      with conversation:
-        st.write(f'ConversationEntityMemory(llm=llm, k=K):  {ConversationEntityMemory(llm=llm, k=K)}') 
-
-      # Create a ConversationEntityMemory object if not already created
-      if 'entity_memory' not in st.session_state:
-        st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
+    #   with debug:
+        
+    #     st.write(f'**ConversationEntityMemory(llm=llm, k=K):**\n\n{textwrap.fill(str(ConversationEntityMemory(llm=llm, k=K)))}')  
 
 
 
+    #   # Create a ConversationEntityMemory object if not already created
+    #   if 'entity_memory' not in st.session_state:
+    #     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
 
-      # Create the ConversationChain object with the specified configuration
-      Conversation = ConversationChain(llm=llm,
-                                       prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-                                       memory=st.session_state.entity_memory)
-    else:
-        st.sidebar.warning(
-          'API key required to try this app.The API key is not stored in any form.')
-        st.stop()
+
+
+
+    #   # Create the ConversationChain object with the specified configuration
+    #   Conversation = ConversationChain(llm=llm,
+    #                                    prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
+    #                                    memory=st.session_state.entity_memory)
+    # else:
+    #     st.sidebar.warning(
+    #       'API key required to try this app.The API key is not stored in any form.')
+    #     st.stop()
 
 
 
@@ -169,13 +239,18 @@ def run():
 
     #with st.expander("💬 Chat History", expanded=True):
     with chat_history_expander:
-        if user_input:
-            show_chat_histories(user_input)
+        # if user_input:
+        show_chat_histories(user_input)
+
+
+
 
     #SIDEBAR
     # Display stored conversation sessions in the sidebar
     if st.session_state['past'] and st.session_state['generated']:
         st.sidebar.button("New Chat", on_click=new_chat, type='primary')
+    
+    st.sidebar.button("Call History Chat", on_click=show_chat_histories, type='primary')
 
     for i, sublist in enumerate(st.session_state.stored_session):
         with st.sidebar.expander(label=f"Conversation-Session:{i}"):

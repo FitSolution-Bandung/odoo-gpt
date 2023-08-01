@@ -1,9 +1,13 @@
 import streamlit as st
 import socket
+from utils import sidebar as sidebar
  
 
 
 def check_server(address, port):
+    sidebar.run()
+    
+    
     # Create a socket object
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
