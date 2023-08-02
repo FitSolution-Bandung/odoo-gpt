@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import os
 import re
 import json
+import jsonpickle
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -38,18 +39,15 @@ from pprint import pprint
 def send_whatsapp_message(phone_number, message):
     url = "https://pati.wablas.com/api/v2/send-message"
     token = os.environ['WABLAS TOKEN']  # Mengambil token dari environment variable
-
     headers = {"Authorization": token, "Content-Type": "application/json"}
-
     payload = {"data": [{"phone": phone_number, "message": message}]}
-
 
     requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     response = requests.post(url,
-                             headers=headers,
-                             data=json.dumps(payload),
-                             verify=False)
+                     headers=headers,
+                     data=json.dumps(payload),
+                     verify=False)
     
     result = response.json()
 
@@ -57,15 +55,18 @@ def send_whatsapp_message(phone_number, message):
 
 
 
-
 # Fungsi untuk menangani pesan masuk dari webhook
 def handle_incoming_message(data):
     credentials = None
+
+    print(f"Data Masuk: {data}")
+
     try:
         phone = data.get('phone', None)  # Mengambil nomor telepon pengirim pesan
         incoming_message = data.get('message', None)  # Mengambil isi pesan
         message = ""
-        # messageType = data.get('messageType', None)  # Mengambil tipe pesan 
+        isFromMe = data.get('isFromMe', None)
+        sender = data.get('sender', None)
 
     
         data_str = ""
@@ -73,11 +74,11 @@ def handle_incoming_message(data):
             if value not in [None, ""]:
                 data_str += f"{key}: {value}" + "\n"  
         
+        print(f'\n\nPesan masuk dari {phone}: {incoming_message} (isFromMe: {isFromMe})\n\n')
 
-        
-        print(f'Pesan masuk dari {phone}: {incoming_message}')
-        
-        
+        if isFromMe:
+            print(f'Pesan dikirim oleh bot. Tidak perlu direspon')
+            exit()
 
         #chek apakah nomor telepon sudah ada di database
         with app.app_context():
@@ -110,10 +111,6 @@ def handle_incoming_message(data):
                     send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
                     print(f'Pesan hasil pengecekan Token: {msg}')
                     exit()
-
-
-                
-            
             
             else:
                 
@@ -121,35 +118,18 @@ def handle_incoming_message(data):
                 db_sqlalchemy.session.add(user)
                 db_sqlalchemy.session.commit()
 
-       
         # if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
         if phone and incoming_message:    
 
             message = prepare_message(phone, incoming_message)
-            
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
-
-        
-
-
-
 
 
         #Tulis record ke database 
         if incoming_message:
-            sender = "62811XXXX"
             write_chat_to_db(phone, incoming_message, sender, message)
-            #Pesan bila berhasil ditambahkan ke database
-            print(f"Message from {phone} added to database")
-             
-              
-
-        # with app.app_context():
-        #     message = Message.query.all()
-        #     print(f'All messages: {message}')
-
- 
-        
+            
+            
         return jsonify({'status': 'success', 'phone': phone})
 
     except Exception as e:
@@ -167,11 +147,22 @@ def prepare_message(phone, incoming_message):
     'generated': []
     }
     
-    
-    # Set the default model and K value
-    MODEL = 'gpt-3.5-turbo'
-    K = 10
-    API_O = os.environ['OPENAI_KEY']
+
+    #Apabila incoming_message diawali dengan "GPT4/" maka gunakan model GPT4 dengan openai_api_key yang terpisah
+    if incoming_message.startswith("GPT4/"):
+        print("Menggunakan model GPT4")
+        MODEL = 'gpt-4'
+        K = 20
+        API_O = os.environ['OPENAI_KEY_GPT4']
+
+        #buang "GPT4/" dari incoming_message
+        incoming_message = incoming_message[5:]
+
+    else:
+        print("Menggunakan model GPT3")
+        MODEL = 'gpt-3.5-turbo'
+        K = 20
+        API_O = os.environ['OPENAI_KEY']
 
 
     # Session state storage would be ideal
@@ -182,46 +173,27 @@ def prepare_message(phone, incoming_message):
                     model_name=MODEL,
                     verbose=False)
 
-        # # Create a ConversationEntityMemory object if not already created
-        # if 'entity_memory' not in st.session_state:
-        #     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
-
-        #chek apakah nomor telepon sudah ada di database
- 
+        #Membaca Entity Memory dari database        
         with app.app_context():
             user_query = User.query.filter_by(phone_number=phone).first()
-            buf_memory = user_query.entity_memory
+            buf_memory_json = user_query.entity_memory
+
+        #Reset Entity Memory ketika pesan masuk adalah "reset"
+        if incoming_message.lower() == "reset":
+            print('\n\nMelakukan reset memori...\n\n')
+            buf_memory_json = None
+            incoming_message = "Katakan 'Memori percakapan sebelumnya sudah saya hapus.'"
 
 
-
-
-        if buf_memory is None:
+        if buf_memory_json is None:
             memory = ConversationEntityMemory(llm=llm, k=K)
+            # print('\n\nGetMemory from DB: Tidak ditemukan memory dalam DB\n\n')
+
         else:
+            memory = jsonpickle.decode(buf_memory_json)
+            # print(f'\n\nGetMemory from DB: {memory}\n\n')
+    
 
-             
-            entity_memory_dict = buf_memory
-            print(f'\n\nGetMemory from DB: {entity_memory_dict}\n\n')
-
-
-            memory = ConversationEntityMemory(llm=llm, k=K, store=entity_memory_dict)
-            # memory = entity_memory_dict
-
-        
-        # memory.entity_store.store
-
-        # def save_context(self, inputs: Dict[str, Any], outputs: Dict[str, str]) -> None:
-
-
-            #   ("Bandung", "Bandung adalah kota yang indah")
-
-        
-        print(f'\n\nGetMemory from DB: {memory}\n\n')
-         
-            #simpan entity memory ke record user
-            # entity_memory = ConversationEntityMemory(llm=llm, k=K, store=entity_memory_dict)
-        
- 
         # Create the ConversationChain object with the specified configuration
         Conversation = ConversationChain(llm=llm,
                                        prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
@@ -229,46 +201,22 @@ def prepare_message(phone, incoming_message):
                                        verbose=True)
     
         output = Conversation.predict(input=incoming_message)
-        # buf_memory = Conversation.memory.entity_store.store
-        buf_memory = Conversation.memory
-        print(f'buf_memory: {buf_memory}')
-
-
-        pprint(buf_memory)
-
-
-        #Save updated entities to database
+        print(f'\n\nOutput: {output}\n\n')
+        
+        #Menyimpan Entity Memory ke database
+        buf_memory = Conversation.memory #sebelumnya sampe memory doang
+        to_save_to_db = buf_memory.entity_store.store
         with app.app_context():
             user_query = User.query.filter_by(phone_number=phone).first()
-
             if user_query is None:
                 print(f"No user found with phone: {phone}")
             else:
                 try:
-                    
-                    try:
-                        # user_query.entity_memory = str(buf_memory)
-                        buf_memory = buf_memory.__dict__
-                    
-                    except:
-                        pass
-
-                    user_query.entity_memory = str(buf_memory)
-
-
+                    buf_memory_string = jsonpickle.encode(buf_memory)
+                    user_query.entity_memory = buf_memory_string
                     db_sqlalchemy.session.commit()
-                    print(f"Successfully updated entity memory for user with phone: {phone}")
+                    print(f"\n\nSuccessfully updated entity memory for user with phone: {phone}")
                 except Exception as e:
-                    print(f"Failed to update entity memory: {str(e)}")
-
-            # user.entity_memory = str(entity_store)
-            # db_sqlalchemy.session.commit()
-
-            # # user = User.query.filter_by(phone_number=phone).first()
-
-            print(f'\n\nEntity Store to DB: {user_query.entity_memory} -- Type: {type(user_query.entity_memory)}\n\n')
-      
- 
-
-    return output
+                    print(f"\n\nFailed to update entity memory: {str(e)}")
     
+    return output

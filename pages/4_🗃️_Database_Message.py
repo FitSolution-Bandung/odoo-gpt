@@ -12,13 +12,13 @@ import pandas as pd
 
 def run():
     sidebar.run()
+    mobile_phone =  st.session_state["mobile_phone"]
     
-
     st.markdown("""
         # Database Viewer
     """)
+    see_all_records = st.checkbox("See All Records") 
     
-
 
     #check tables
     data = inspect_db()
@@ -29,9 +29,15 @@ def run():
         with app.app_context():
 
             model = globals()[data.capitalize()] # Mendapatkan kelas model berdasarkan nama tabel
-            records = model.query.all()
-          
-            print(f"All records for table {model}:")
+
+            #filter kalau hanya ingin melihat data milik sendiri
+            if see_all_records != True:
+                if model == Message:
+                    records = model.query.filter_by(recipient=mobile_phone).all()
+                else:
+                    records = model.query.filter_by(phone_number=mobile_phone).all()
+            else:
+                records = model.query.all()
         
             with st.expander(f"**Table {str(i+1)}:  {data.capitalize()}**"):
 
@@ -40,8 +46,6 @@ def run():
                 record_ids_to_delete = []
 
                 for record in records:
-                    # st.write(record)
-                        
                     # Add a checkbox for each record
                     # if st.checkbox(f"🗑️ Select **{data.capitalize()} {record.id}** for deletion"):
                     if st.checkbox(f"🗑️ {record}"):
@@ -53,79 +57,44 @@ def run():
 
                     if st.button(f"❌ DELETE records of **{data.capitalize()}**  with id: {record_ids_to_delete}"):
                         for record in records_to_delete:
-                            db_sqlalchemy.session.delete(record)
-                            db_sqlalchemy.session.commit()
-                            st.success(f"Record {record.id} deleted")
+                            try :    
+                                db_sqlalchemy.session.delete(record)
+                                db_sqlalchemy.session.commit()
+                                st.success(f"Record {record} deleted")
+                            except:
+                                st.error(f"Record {record} failed to delete")
+
                         time.sleep(1) # wait some time then refresh the page
                         st.experimental_rerun()
                     
 
                 st.write("---")
 
-                if st.checkbox(f"⚠️ **EMPTY** the **'{data.capitalize()}'** table."):
-                    if st.button(f"I am sure to EMPTY the **'{data.capitalize()}'** table."):
+                if st.checkbox(f"⚠️ **DELETE** from **'{data.capitalize()}'** table."):
+                    
+                    if see_all_records != True:
+                        button_text = f"**I am sure to DELETE** records with phone number [{mobile_phone}] of the **'{data.capitalize()}'** table."
+                    else:
+                        button_text = f"**I am sure to EMPTY** the **'{data.capitalize()}'** table."
+
+
+
+                    if st.button(button_text):
                         
-                        model.query.delete()  # Menghapus semua baris dari tabel
+                        if see_all_records != True:
+                            if model == Message:
+                                model.query.filter_by(recipient=mobile_phone).delete()  # Menghapus semua baris dari tabel
+                            else:
+                                model.query.filter_by(phone_number=mobile_phone).delete()
+                        else:
+                            model.query.delete()  # Menghapus semua baris dari tabel
+
+
                         # db_sqlalchemy.session.delete(data)
                         db_sqlalchemy.session.commit()
-                        st.success("Table " + str(i+1) + " deleted")
+                        st.success("Records from Table " + str(i+1) + " are deleted")
                         time.sleep(1) # wait some time then refresh the page
                         st.experimental_rerun()
-
-
-
-
-                    # if st.checkbox(f"🗑️ Delete **{data.capitalize()} {record.id}**"):
-                    #    if st.button(f"I am sure to DELETE: {data.capitalize()} {record.id}"):
-                        
-                    #         db_sqlalchemy.session.delete(record)
-                    #         db_sqlalchemy.session.commit()
-                    #         st.success(f"Record {record.id} deleted")
-                    #         time.sleep(1) #tunggu beberapa saat kemudian refrsh halaman
-                    #         st.experimental_rerun()
-                            
-                    # print(record)
-
-
-            
-
-
-    # #definisikan "data" sebagai penampungan dalam bentuk list
-    # data = []
-    # print(f'data = {data}')
-
-    # with app.app_context():
-    #     data.append(User.query.all())
-    #     data.append(Message.query.all())
-
-    #     # data[1] = User.query.all()
-    #     # data[2] = Message.query.all()
-
-
-   
-
-    # for i, data in enumerate(data):
-    #     print(f'data[{i}] = {data}')
-
-
-    #     with st.expander("Table " + str(i+1)):
-    #         st.write(data)
-
-    #         #buat tombol delete untuk setiap i 
-    #         if st.button("Delete Table " + str(i+1)):
-    #             with app.app_context():
-    #                 db_sqlalchemy.session.delete(data)
-    #                 db_sqlalchemy.session.commit()
-    #                 st.success("Table " + str(i+1) + " deleted")
-
-    
-
-
- 
-
-   
-
-
 
 
 if st.session_state.get('token') is None:

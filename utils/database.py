@@ -31,8 +31,8 @@ class Message(db_sqlalchemy.Model):
     id = db_sqlalchemy.Column(db_sqlalchemy.Integer, primary_key=True)
     user_id = db_sqlalchemy.Column(db_sqlalchemy.Integer, db_sqlalchemy.ForeignKey('user.id'), nullable=False)
     user_name = db_sqlalchemy.Column(db_sqlalchemy.String(80), nullable=True)
-    sender = db_sqlalchemy.Column(db_sqlalchemy.String(80), nullable=False)
-    recipient = db_sqlalchemy.Column(db_sqlalchemy.String(80), nullable=False)
+    sender = db_sqlalchemy.Column(db_sqlalchemy.String(80), nullable=False)  
+    recipient = db_sqlalchemy.Column(db_sqlalchemy.String(80), nullable=False) #sama dengan mobile_phone
     past = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=False)
     generated = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=False)
     timestamp = db_sqlalchemy.Column(db_sqlalchemy.DateTime, default=datetime.utcnow, nullable=False)
@@ -97,6 +97,9 @@ def write_chat_to_db(recipient, past, sender ,generated):
     with app.app_context():
         db_sqlalchemy.session.add(msg)  # Menambahkan objek pesan masuk ke database
         db_sqlalchemy.session.commit()  # Menyimpan perubahan ke database
+
+    print(f"Message from {recipient} added to database")
+    return msg
 
 
 init_app(app)

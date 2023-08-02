@@ -41,6 +41,14 @@ def verify_user(url, db, username, password):
 
 
 def store_credentials(url, db, username, password):
+    
+    # Initialize session states
+    if "mobile_phone" not in st.session_state:
+      st.session_state["mobile_phone"] = ""
+      st.session_state["nick_name"] = ""
+
+
+
     token = hashlib.sha256((url + db + username + password).encode()).hexdigest()
     st.session_state['token'] = token
 
@@ -58,6 +66,10 @@ def store_credentials(url, db, username, password):
     #get mobile phone
     mobile_phone = verify_user(url, db, username, password)[1]
     nick_name = verify_user(url, db, username, password)[2]
+
+    # Simpan data login ke session state
+    st.session_state['mobile_phone'] = mobile_phone
+    st.session_state['nick_name'] = nick_name
     
     print(f'Modul Login :\n\n Nick Name: {nick_name}\nMobile phone: {mobile_phone}')
 
@@ -101,8 +113,12 @@ def is_valid_url(url):
     except ValueError:
         return False
 
-
+ 
 def run():
+
+
+
+
     if 'token' not in st.session_state or not st.session_state['token']:
         st.markdown("""
                     # Login to Odoo
@@ -160,3 +176,10 @@ def run():
                         st.session_state['token'] = None
                 except gaierror:
                     st.error("Failed to connect to the specified URL. Please check the URL and try again.")
+
+
+
+    return st.session_state['token'] if 'token' in st.session_state else None
+
+
+
