@@ -43,46 +43,27 @@ def new_chat():
   st.session_state["generated"] = []
   st.session_state["past"] = []
   st.session_state["input"] = ""
-  st.session_state.entity_memory.entity_store = {}
-  st.session_state.entity_memory.buffer.clear()
+  # st.session_state.entity_memory.entity_store = {}
+  # st.session_state.entity_memory.buffer.clear()
 
 
-def show_chat_histories(user_input=None):
+def show_chat_histories(phone_number, user_input=None):
       
-      
-      
-    credentials= st.session_state['credentials']
-    if credentials is not None:
-        url, username, password, created_at, mobile_phone = credentials
-
-        sender = mobile_phone
-
+    print(f'nomor telp user: {phone_number}')
 
 
     with app.app_context():
-      messages = Message.query.all()
-    
-    mobile_phones = set()
-    for msg in messages:
-       mobile_phones.add(msg.recipient) 
-    
-    print(f'nomor telp user: {mobile_phones}')
+      # messages = Message.query.all()
 
-    for mobile_phone in mobile_phones:
-       #Extract all messages from the database
-        with app.app_context():
-            messages = Message.query.filter_by(recipient=mobile_phone).order_by(Message.id).all()
-            
+      messages = Message.query.filter_by(recipient=phone_number).order_by(Message.id).all()
+      user = User.query.filter_by(phone_number=phone_number).first()
 
-        past = []
-        generated = []
+    past = []
+    generated = []
 
-        for message in messages:
-            past.append(message.past)
-            generated.append(message.generated)
-
-
-
+    for message in messages:
+        past.append(message.past)
+        generated.append(message.generated)
 
     if len(messages) > 0:
         for i in range(0, len(messages)):
@@ -91,7 +72,7 @@ def show_chat_histories(user_input=None):
 
             with st.chat_message(name="Odoo-GPT", avatar="🤖"):
                     st.write(f"{generated[i]}")
- 
+
     if user_input:
         with st.chat_message(name="User", avatar="🧑‍💻"):
            st.write(user_input)
@@ -99,7 +80,7 @@ def show_chat_histories(user_input=None):
         with st.chat_message(name="Odoo-GPT", avatar="🤖"):
             with st.spinner("Memuat Respon ..."):
                 # output = Conversation.run(input=user_input)
-                output = wa.prepare_message(mobile_phone, user_input)
+                output = wa.prepare_message(phone_number, user_input)
 
             st.write(output)
 
@@ -108,23 +89,36 @@ def show_chat_histories(user_input=None):
     # write_chat_to_db(recipient, past, sender, generated)
      
         past = user_input
-        recipient = mobile_phone
+        recipient = phone_number
       
-        write_chat_to_db(recipient, past, sender, output)
+        sender = "XXX"
+        write_chat_to_db(user.username, recipient, past, sender, output)
       
+    return phone_number
 
 
-      # st.session_state["past"].append(user_input)
-      # st.session_state["generated"].append(output)
-   
+
+def clear_chat_histories(phone_number):
+    
+    print(f'\n\nClearing Chat History of {phone_number} ...\n\n')
+    
+    with st.expander("Clear Chat History", expanded=True):
+    
+      if st.checkbox(f"**DELETE** from chat history of [{phone_number}]"):
+          if st.button(f"⚠️ Yes, I am sure to CLEAR All the chat history of [{phone_number}]"):
+              with app.app_context(): 
+                  # model.query.filter(model.recipient.in_(selected_number)).all()
+                  Message.query.filter(Message.recipient == phone_number).delete()
+                  # delete()
+                  db_sqlalchemy.session.commit()
+              st.success("✅ **'Message'** table has been **DELETED**.")
+              st.experimental_rerun()
 
 
 
 
 def run():
     sidebar.run()
-
-
                      
     # Initialize session states
     if "generated" not in st.session_state:
@@ -143,95 +137,27 @@ def run():
       st.session_state["credentials"] = []
 
  
+    title = st.empty()
+   
 
+    #Cetak opsi nomor telp user
+    with app.app_context():
+        options = list(set([f'{message.recipient}' for message in Message.query.all()]))
+        selected_number = st.selectbox('Filter dengan Nomor Telp:', options)
+        user = User.query.filter_by(phone_number=selected_number).first()
 
-    # Define function to start a new chat
-    
-    # sidebar
+    with title:
+        name = user.nick_name if user is not None else ""
+        st.title(f"Chat History: {name} [{selected_number}]")
+ 
 
-    #SIDEBAR
-    # Set up sidebar with various options
-    with st.sidebar.expander("🛠️ ", expanded=False):
-      # Option to preview memory store
-      if st.checkbox("Preview memory store"):
-        # st.expander("Memory-Store", expanded=False)
-        st.session_state.entity_memory.store
-
-      # Option to preview memory buffer
-      if st.checkbox("Preview memory buffer"):
-        # with st.expander("Bufffer-Store", expanded=False):
-        st.session_state.entity_memory.buffer
-
-      MODEL = st.selectbox(label='Model',
-                           options=[
-                             'gpt-3.5-turbo', 'text-davinci-003',
-                             'text-davinci-002', 'code-davinci-002'
-                           ])
-      K = st.number_input(' (#)Summary of prompts to consider',
-                          min_value=3,
-                          max_value=1000)
-
-
-
-    #BODY
-    # Set up the Streamlit app layout
-    
-    # Ask the user to enter their OpenAI API key
-    # API_O = st.sidebar.text_input("API-KEY", type="password")
-
-    # if API_O == "":
-    #   # API_O = os.environ['OPENAI_KEY']
-      
-    #   API_O = os.environ['OPENAI_KEY']
-    #   st.info(f"""
-    #       Saat ini menggunakan API-KEY default.             
-    #       """)
-
-    # with st.expander("📝 Debug Information", expanded=False):
-    #   credentials = st.session_state['credentials']
-    #   if credentials is not None:
-    #     url, username, password, created_at, mobile_phone = credentials
-
-    #   st.write(f'**ENTITY_MEMORY_CONVERSATION_TEMPLATE:**\n\n{str(ENTITY_MEMORY_CONVERSATION_TEMPLATE)}')
-    #   st.write('---')
-      
-    #   debug = st.empty()
-
-
-    # # Session state storage would be ideal
-    # if API_O:
-    #   # Create an OpenAI instance
-    #   llm = ChatOpenAI(temperature=0,
-    #                openai_api_key=API_O,
-    #                model_name=MODEL,
-    #                verbose=False)
-
-      
-    #   with debug:
         
-    #     st.write(f'**ConversationEntityMemory(llm=llm, k=K):**\n\n{textwrap.fill(str(ConversationEntityMemory(llm=llm, k=K)))}')  
+         
+    with st.sidebar:
+        clear_chat_histories(selected_number)
 
 
 
-    #   # Create a ConversationEntityMemory object if not already created
-    #   if 'entity_memory' not in st.session_state:
-    #     st.session_state.entity_memory = ConversationEntityMemory(llm=llm, k=K)
-
-
-
-
-    #   # Create the ConversationChain object with the specified configuration
-    #   Conversation = ConversationChain(llm=llm,
-    #                                    prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-    #                                    memory=st.session_state.entity_memory)
-    # else:
-    #     st.sidebar.warning(
-    #       'API key required to try this app.The API key is not stored in any form.')
-    #     st.stop()
-
-
-
-    #Kirim Pesan
     chat_history_expander = st.expander("💬 Chat History", expanded=True)
     chat_history_expander.empty()
 
@@ -240,32 +166,10 @@ def run():
     #with st.expander("💬 Chat History", expanded=True):
     with chat_history_expander:
         # if user_input:
-        show_chat_histories(user_input)
+        show_chat_histories(selected_number, user_input)
 
 
-
-
-    #SIDEBAR
-    # Display stored conversation sessions in the sidebar
-    if st.session_state['past'] and st.session_state['generated']:
-        st.sidebar.button("New Chat", on_click=new_chat, type='primary')
-    
-    st.sidebar.button("Call History Chat", on_click=show_chat_histories, type='primary')
-
-    for i, sublist in enumerate(st.session_state.stored_session):
-        with st.sidebar.expander(label=f"Conversation-Session:{i}"):
-            st.write(sublist)
-            st.download_button("Download Chat",
-                               "\n".join(sublist),
-                               file_name=f"chat-{i}.txt",
-                               mime="text/plain")
-
-    # Allow the user to clear all stored conversation sessions
-    if st.session_state.stored_session:
-      # if st.sidebar.checkbox("Clear-all"):
-        if st.sidebar.button("Clear-all"):
-            st.sidebar.checkbox("Klik disini untuk menghapus semuanya",
-                                on_change=lambda: st.session_state.clear())
+ 
           
 if 'logged_in' in st.session_state and st.session_state['logged_in']:
     status_login = st.session_state['logged_in']
@@ -273,5 +177,3 @@ if 'logged_in' in st.session_state and st.session_state['logged_in']:
 else:
     st.error("You are not logged in!")
     login.run()
-
-

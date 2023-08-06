@@ -7,6 +7,7 @@ from utils.database import User, Message, app, db_sqlalchemy, inspect_db
 from utils import sidebar as sidebar
 import pandas as pd
 
+import json
 
 
 
@@ -17,8 +18,14 @@ def run():
     st.markdown("""
         # Database Viewer
     """)
-    see_all_records = st.checkbox("See All Records") 
+    see_all_records = st.checkbox("See All Records")
     
+    #definiskan list option dari database user field phone_number
+    with app.app_context():
+        options = [user.phone_number for user in User.query.all()]
+        print(f"options = {options}")
+        selected_number = st.multiselect('Filter dengan Nomor Telp:', options)
+        selected_number.append(mobile_phone)
 
     #check tables
     data = inspect_db()
@@ -31,15 +38,19 @@ def run():
             model = globals()[data.capitalize()] # Mendapatkan kelas model berdasarkan nama tabel
 
             #filter kalau hanya ingin melihat data milik sendiri
-            if see_all_records != True:
+            if not see_all_records:
                 if model == Message:
-                    records = model.query.filter_by(recipient=mobile_phone).all()
+                    # records = model.query.filter_by(recipient=mobile_phone).all()
+                    records = model.query.filter(model.recipient.in_(selected_number)).all()
+
                 else:
-                    records = model.query.filter_by(phone_number=mobile_phone).all()
+                    # records = model.query.filter_by(phone_number=mobile_phone).all()
+                    records = model.query.filter(model.phone_number.in_(selected_number)).all()
+
             else:
                 records = model.query.all()
         
-            with st.expander(f"**Table {str(i+1)}:  {data.capitalize()}**"):
+            with st.expander(f"**Table {str(i+1)}:  {data.capitalize()}  [{len(records)}]**"):
 
                 # Create a list to store the records selected for deletion
                 records_to_delete = []
@@ -47,7 +58,28 @@ def run():
 
                 for record in records:
                     # Add a checkbox for each record
-                    # if st.checkbox(f"🗑️ Select **{data.capitalize()} {record.id}** for deletion"):
+
+                    # record_dict = record.__dict__
+
+                    # key_to_print = [key for key in record_dict.keys() if not key.startswith("_")][1:] 
+                    # print(f"\n\nkey_to_print = {key_to_print}\n\n")
+
+    # id = db_sqlalchemy.Column(db_sqlalchemy.Integer, primary_key=True)
+    # username = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)
+    # url = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)   
+    # db = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)
+    # password = db_sqlalchemy.Column(db_sqlalchemy.String(64) )
+    # nick_name = db_sqlalchemy.Column(db_sqlalchemy.String(64))
+    # phone_number  = db_sqlalchemy.Column(db_sqlalchemy.String(20), nullable=False)
+    # messages = db_sqlalchemy.relationship('Message', backref='user', lazy=True)
+    # entity_memory = db_sqlalchemy.Column(db_sqlalchemy.PickleType, nullable=True)
+    # token = db_sqlalchemy.Column(db_sqlalchemy.String(64))
+    # created_at = db_sqlalchemy.Column(db_sqlalchemy.DateTime, default=datetime.utcnow, nullable=False, unique=True)
+                    
+                    
+                    # print(f"record = {record} type: {type(record_dict)}")
+
+
                     if st.checkbox(f"🗑️ {record}"):
                         records_to_delete.append(record)
                         record_ids_to_delete.append(record.id)
@@ -72,7 +104,7 @@ def run():
 
                 if st.checkbox(f"⚠️ **DELETE** from **'{data.capitalize()}'** table."):
                     
-                    if see_all_records != True:
+                    if not see_all_records:
                         button_text = f"**I am sure to DELETE** records with phone number [{mobile_phone}] of the **'{data.capitalize()}'** table."
                     else:
                         button_text = f"**I am sure to EMPTY** the **'{data.capitalize()}'** table."
@@ -81,7 +113,7 @@ def run():
 
                     if st.button(button_text):
                         
-                        if see_all_records != True:
+                        if not see_all_records:
                             if model == Message:
                                 model.query.filter_by(recipient=mobile_phone).delete()  # Menghapus semua baris dari tabel
                             else:

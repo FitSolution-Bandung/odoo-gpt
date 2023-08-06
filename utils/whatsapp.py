@@ -14,7 +14,7 @@ from utils.get_credential import get_credentials, is_valid_token
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
-from langchain.chains.conversation.memory import ConversationEntityMemory
+from langchain.chains.conversation.memory import ConversationEntityMemory, ConversationBufferWindowMemory
 from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 
 # from langchain.memory import ConversationBufferWindowMemory
@@ -29,6 +29,7 @@ from utils.database import Message as Message
 from utils.database import write_chat_to_db
 
 from pprint import pprint
+import streamlit as st
 
 
  
@@ -67,8 +68,8 @@ def handle_incoming_message(data):
         message = ""
         isFromMe = data.get('isFromMe', None)
         sender = data.get('sender', None)
+        user_name = data.get('pushName', None)
 
-    
         data_str = ""
         for key, value in data.items():
             if value not in [None, ""]:
@@ -77,7 +78,7 @@ def handle_incoming_message(data):
         print(f'\n\nPesan masuk dari {phone}: {incoming_message} (isFromMe: {isFromMe})\n\n')
 
         if isFromMe:
-            print(f'Pesan dikirim oleh bot. Tidak perlu direspon')
+            print('Pesan dikirim oleh bot. Tidak perlu direspon')
             exit()
 
         #chek apakah nomor telepon sudah ada di database
@@ -95,7 +96,13 @@ def handle_incoming_message(data):
                     print(f"Format sesuai? {re.match(r'^[0-9a-fA-F]{64}$', incoming_message)}")
 
                     if credentials is not None:
-                        url, username, password, created_at, mobile_phone = credentials
+
+                        url = credentials['url']
+                        username = credentials['username']
+                        password = credentials['password']
+                        created_at = credentials['created_at']
+                        mobile_phone = credentials['mobile_phone']
+                        
                         # Calculate remaining time
                         remaining_time = created_at + timedelta(days=5) - datetime.now()
                         remaining_hours = remaining_time.total_seconds() // 3600
@@ -114,7 +121,7 @@ def handle_incoming_message(data):
             
             else:
                 
-                user = User(phone_number=phone)
+                user = User(phone_number=phone, username=user_name)
                 db_sqlalchemy.session.add(user)
                 db_sqlalchemy.session.commit()
 
@@ -123,17 +130,14 @@ def handle_incoming_message(data):
 
             message = prepare_message(phone, incoming_message)
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
-
-
-        #Tulis record ke database 
-        if incoming_message:
-            write_chat_to_db(phone, incoming_message, sender, message)
-            
+            write_chat_to_db(user_name, phone, incoming_message, sender, message)
             
         return jsonify({'status': 'success', 'phone': phone})
 
     except Exception as e:
-        print(f"Error: {e}")
+        error_msg = f"Error (handle_incoming_message): {e}"
+        print(error_msg)
+        send_whatsapp_message(phone, f"{error_msg}\n\nKirimkam 'reset' untuk melakukan reset memori chatbot.")
         raise
    
 
@@ -149,19 +153,16 @@ def prepare_message(phone, incoming_message):
     
 
     #Apabila incoming_message diawali dengan "GPT4/" maka gunakan model GPT4 dengan openai_api_key yang terpisah
+    K = 10  #Jumlah Histori yang perlu di konsider
     if incoming_message.startswith("GPT4/"):
         print("Menggunakan model GPT4")
         MODEL = 'gpt-4'
-        K = 20
         API_O = os.environ['OPENAI_KEY_GPT4']
-
         #buang "GPT4/" dari incoming_message
         incoming_message = incoming_message[5:]
-
     else:
         print("Menggunakan model GPT3")
         MODEL = 'gpt-3.5-turbo'
-        K = 20
         API_O = os.environ['OPENAI_KEY']
 
 
@@ -171,7 +172,7 @@ def prepare_message(phone, incoming_message):
         llm = ChatOpenAI(temperature=0,
                     openai_api_key=API_O,
                     model_name=MODEL,
-                    verbose=False)
+                    verbose=True)
 
         #Membaca Entity Memory dari database        
         with app.app_context():
@@ -186,34 +187,39 @@ def prepare_message(phone, incoming_message):
 
 
         if buf_memory_json is None:
+            # We set a low k=2, to only keep the last 2 interactions in memory
+            #memory = ConversationBufferWindowMemory(k=K)
             memory = ConversationEntityMemory(llm=llm, k=K)
             # print('\n\nGetMemory from DB: Tidak ditemukan memory dalam DB\n\n')
 
         else:
             memory = jsonpickle.decode(buf_memory_json)
-            # print(f'\n\nGetMemory from DB: {memory}\n\n')
+            #print(f'\n\nGetMemory from DB: {memory}\n\n')
     
 
         # Create the ConversationChain object with the specified configuration
         Conversation = ConversationChain(llm=llm,
-                                       prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
-                                       memory=memory,
-                                       verbose=True)
+                                        prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
+                                        memory=memory,
+                                        verbose=True)
     
         output = Conversation.predict(input=incoming_message)
-        print(f'\n\nOutput: {output}\n\n')
+        print(f'\nOutput: {output}\n')
         
         #Menyimpan Entity Memory ke database
         buf_memory = Conversation.memory #sebelumnya sampe memory doang
-        to_save_to_db = buf_memory.entity_store.store
+        
         with app.app_context():
             user_query = User.query.filter_by(phone_number=phone).first()
             if user_query is None:
                 print(f"No user found with phone: {phone}")
             else:
+                print(f"User found with phone: {phone}")
                 try:
-                    buf_memory_string = jsonpickle.encode(buf_memory)
-                    user_query.entity_memory = buf_memory_string
+                    st.session_state["entity_memory"] = buf_memory #save entity memory to session state
+
+                    buf_memory_jsonpickle = jsonpickle.encode(buf_memory)
+                    user_query.entity_memory = buf_memory_jsonpickle
                     db_sqlalchemy.session.commit()
                     print(f"\n\nSuccessfully updated entity memory for user with phone: {phone}")
                 except Exception as e:

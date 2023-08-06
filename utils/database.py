@@ -24,7 +24,9 @@ class User(db_sqlalchemy.Model):
 
     def __repr__(self):
         # return f'<User {self.id}: phone_number={self.phone_number}, entity_memory={self.entity_memory}>'
-        return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, entity_memory={self.entity_memory} ,  created_at={self.created_at.strftime(date_format)}>'
+        # return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, entity_memory={self.entity_memory} ,  created_at={self.created_at.strftime(date_format)}>'
+        return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, created_at={self.created_at.strftime(date_format)}>'
+    
     
 class Message(db_sqlalchemy.Model):
     __tablename__ = 'message'
@@ -83,11 +85,11 @@ def init_app(app):
 
 
 #Fungsi untuk tulis record chat ke database
-def write_chat_to_db(recipient, past, sender ,generated):
+def write_chat_to_db(user_name, recipient, past, sender ,generated):
 
     msg = Message(
                 user_id=1,
-                user_name='',
+                user_name=user_name,
                 recipient=recipient,
                 past=past,
                 sender=sender,

@@ -53,10 +53,17 @@ def store_credentials(url, db, username, password):
     st.session_state['token'] = token
 
     credentials = get_credentials(token)
+    print(f'credentials: {credentials}')
 
     if credentials:
 
-        url, username, password, created_at, mobile_phone = credentials
+        url = credentials['url']
+        db = credentials['db']
+        username = credentials['username']
+        password = credentials['password']
+        created_at = credentials['created_at']
+        mobile_phone = credentials['phone_number']
+
         st.session_state['credentials'] = credentials
 
 
@@ -71,7 +78,7 @@ def store_credentials(url, db, username, password):
     st.session_state['mobile_phone'] = mobile_phone
     st.session_state['nick_name'] = nick_name
     
-    print(f'Modul Login :\n\n Nick Name: {nick_name}\nMobile phone: {mobile_phone}')
+    print(f'\nLoging In ...\nNick Name: {nick_name}\nMobile phone: {mobile_phone}')
 
     # Simpan waktu saat ini dalam format string
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -79,13 +86,11 @@ def store_credentials(url, db, username, password):
     with app.app_context():
         # Cari User dengan url, db, dan username yang sama
         user_query = User.query.filter_by(phone_number=mobile_phone).first()
-        print(f'User: {user_query}')
-
-
+        print(f'User Found...\nUser: {user_query.username}\n\n')
        
         if user_query is None:
             # Jika User belum ada, buat User baru
-            print(f'url: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\nmobile_phone: {mobile_phone}\nnick_name: {nick_name} ')
+            print(f'url: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\nmobile_phone: {mobile_phone}\nnick_name: {nick_name}\n\n')
 
             user_query = User(url=url, db=db, username=username, password=password_encrypted, token=token, phone_number=mobile_phone, nick_name=nick_name, created_at=datetime.strptime(now, '%Y-%m-%d %H:%M:%S'))
             db_sqlalchemy.session.add(user_query)
@@ -98,8 +103,7 @@ def store_credentials(url, db, username, password):
             user_query.nick_name = nick_name
             user_query.created_at = datetime.strptime(now, '%Y-%m-%d %H:%M:%S')
 
-
-            print(f'Mau di update \n\nurl: {url}\ndb: {db}\nusername: {username}\npassword: {password_encrypted}\ntoken: {token}\ncreated_at: {now}\nphone_number: {mobile_phone}\nnick_name: {nick_name} ')
+            print(f'Update Database.\nurl: {url}\ndb: {db}\nusername: {username}\ntoken: {token}\ncreated_at: {now}\nphone_number: {mobile_phone}\nnick_name: {nick_name} ')
 
             db_sqlalchemy.session.commit()
 
@@ -115,9 +119,6 @@ def is_valid_url(url):
 
  
 def run():
-
-
-
 
     if 'token' not in st.session_state or not st.session_state['token']:
         st.markdown("""

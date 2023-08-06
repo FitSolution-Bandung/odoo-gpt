@@ -39,10 +39,12 @@ def get_credentials(token):
 
     if user:
         url = user.url
+        db = user.db
         username = user.username
         password_encrypted = user.password
         phone_number = user.phone_number
         created_at = user.created_at
+
 
         # Check if the token has expired
         if datetime.now() - created_at > timedelta(days=5):
@@ -55,12 +57,25 @@ def get_credentials(token):
 
 
 
-        print(f'User found with token: {token}')
+        data_dict = {
+            'url': url,
+            'db': db,
+            'username': username,
+            'password': password,
+            'created_at': created_at,
+            'phone_number': phone_number
 
-        return url, username, password, created_at, phone_number
+        }
+
+
+
+        print(f'User found with token: {token}')
+        print(f'User data: {data_dict}')
+
+        return data_dict
 
     else:
-        print(f'No user found with token: {token}')
+        print(f'NO user found with token: {token}')
         return None
 
     

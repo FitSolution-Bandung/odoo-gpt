@@ -37,7 +37,19 @@ def run():
                 
         credentials = get_credentials(input_token)
         if credentials:
-            url, username, password, created_at, phone_number = credentials
+
+            url = credentials['url']
+            db = credentials['db']
+            username = credentials['username']
+            password = credentials['password']
+            created_at = credentials['created_at']
+            phone_number = credentials['phone_number']
+            
+            # url, db, username, password, created_at, phone_number = credentials
+
+            print(f'\n\ncredentials: {credentials}\n\n')
+            print(f'\n\nurl: {url}\n\n')
+            print(f'\n\ncreated at: {created_at}\n\n')
             
             # Calculate remaining time
             remaining_time = created_at + timedelta(days=5) - datetime.now()
