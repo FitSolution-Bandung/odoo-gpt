@@ -153,7 +153,7 @@ def prepare_message(phone, incoming_message):
     
 
     #Apabila incoming_message diawali dengan "GPT4/" maka gunakan model GPT4 dengan openai_api_key yang terpisah
-    K = 10  #Jumlah Histori yang perlu di konsider
+    K = 5  #Jumlah Histori yang perlu di konsider
     if incoming_message.startswith("GPT4/"):
         print("Menggunakan model GPT4")
         MODEL = 'gpt-4'
