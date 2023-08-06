@@ -62,8 +62,9 @@ def inspect_db():
         # Get table names
         tables = inspector.get_table_names()
 
+
         print("Tables:", tables)
-        print(f'Total tables: {len(tables)}')
+        print(f'Total tables: {len(tables)}. [database.py]')
 
         # Get columns for each table
         for table in tables:
