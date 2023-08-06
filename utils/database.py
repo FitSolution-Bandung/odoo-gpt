@@ -47,35 +47,23 @@ class Message(db_sqlalchemy.Model):
 def inspect_db():
     # Create a context for the current app
     with app.app_context():
-        # Get engine
-        engine = db_sqlalchemy.engine
-           
         
-        # Initiate inspection
-        inspector = inspect(engine)
-
-        # Ketika mau drop di un-comment dulu
+        # Ketika mau drop di un-comment dulu (PENTING SAAT akan REINSTAL)
         # db_sqlalchemy.drop_all()
         # user.__table__.drop(db_sqlalchemy.engine)
 
-
         # Get table names
+        engine = db_sqlalchemy.engine
+        inspector = inspect(engine)
         tables = inspector.get_table_names()
-
-
-        print("Tables:", tables)
         print(f'Total tables: {len(tables)}. [database.py]')
-
-        # Get columns for each table
-        for table in tables:
-            print("Table Name: ", table)
-            
-        return tables
-
+        for i, table in enumerate(tables):
+            print(f"Table [{i}]: {table.capitalize()}")
+        
 
 
 def init_app(app):
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///user_data.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user_data.db'
     db_sqlalchemy.init_app(app)
     
     with app.app_context():
