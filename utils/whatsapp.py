@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
+import openai
 
 import os
 import re
@@ -11,6 +12,8 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from utils.get_credential import get_credentials, is_valid_token
+
+
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
@@ -28,11 +31,13 @@ from utils.database import User as User
 from utils.database import Message as Message
 from utils.database import write_chat_to_db
 
+from .whatsapp_utils import audio_to_text, get_location_from_message,recognize_image_from_url, analyze_video, analyze_document
+
 from pprint import pprint
 import streamlit as st
 
 
- 
+
 
 
 
@@ -48,11 +53,15 @@ def send_whatsapp_message(phone_number, message):
     response = requests.post(url,
                      headers=headers,
                      data=json.dumps(payload),
-                     verify=False)
+                     verify=False, 
+                     timeout=30)
     
     result = response.json()
 
     return result
+
+
+
 
 
 
@@ -65,10 +74,14 @@ def handle_incoming_message(data):
     try:
         phone = data.get('phone', None)  # Mengambil nomor telepon pengirim pesan
         incoming_message = data.get('message', None)  # Mengambil isi pesan
-        message = ""
         isFromMe = data.get('isFromMe', None)
         sender = data.get('sender', None)
         user_name = data.get('pushName', None)
+        messageType = data.get('messageType', None)
+        url = data.get('url', None) 
+
+        message = ''
+
 
         data_str = ""
         for key, value in data.items():
@@ -112,7 +125,6 @@ def handle_incoming_message(data):
 
                     else:
                         msg = "Invalid token. Please check your token."
-           
 
                     message = msg
                     send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
@@ -120,28 +132,70 @@ def handle_incoming_message(data):
                     exit()
             
             else:
-                
                 user = User(phone_number=phone, username=user_name)
                 db_sqlalchemy.session.add(user)
                 db_sqlalchemy.session.commit()
 
-        # if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
-        if phone and incoming_message:    
+        # Check type pesan kemuadian lakukan proses sesuai dengan type pesan
+        if messageType == "audio":
+            incoming_message = audio_to_text(url)
+            message = f"_Audio:[{incoming_message}]_\n\n"
+        elif messageType == "location":
+            incoming_message = get_location_from_message(incoming_message)
+            message = f"_[{incoming_message}]_\n\n"
+        elif messageType == "image":
+            images_info = recognize_image_from_url(url)
+            print(f'Incoming Message: {incoming_message}')
 
-            message = prepare_message(phone, incoming_message)
+
+            base_prompt_1 = f'''
+            - Berikut adalah keterangan yang bisa digunakan sebagai materi untuk menyusun respons: {str(images_info)}.
+            - "Text dalam gambar" diperoleh dari OCR foto. Prediksi teks terpotong dari konteks.
+            '''
+            base_prompt_2 = f'''
+            - Gunakan "sepertinya", "mungkin", "saya rasa" untuk hal tidak pasti.
+            - Susun kalimat motivasi dengan kata-kata di atas.
+            - Tambahkan ekspresi dan emoticon relevan di akhir. 
+            '''
+
+            if incoming_message == '' or incoming_message is None:
+                incoming_message = f'\nRespon dengan satu kalimat ekspresif, sesuai dengan catatan sebagai berikut:{base_prompt_1} {base_prompt_2}'
+            else:
+                incoming_message = f'''Caption:{incoming_message}\n---\nRespon sesuai dengan caption diatas, dengan catatan sebagai berikut:{base_prompt_1}'''
+
+              
+        elif messageType == "video":
+            incoming_message = analyze_video(url)
+            # message = f"_Video Description: {video_description}_\n\n"
+        elif messageType == "document":
+            incoming_message = analyze_document(url)
+        else:
+            message = ""
+
+
+
+        # Persiapkan pesan untuk dikirimkan ke whatsapp
+        # if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
+        if phone and incoming_message is not None:    
+            message = message + prepare_message(phone, incoming_message)
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
             write_chat_to_db(user_name, phone, incoming_message, sender, message)
             
         return jsonify({'status': 'success', 'phone': phone})
 
     except Exception as e:
-        error_msg = f"Error (handle_incoming_message): {e}"
-        print(error_msg)
-        send_whatsapp_message(phone, f"{error_msg}\n\nKirimkam 'reset' untuk melakukan reset memori chatbot.")
+        if(phone == "628112227980"):
+            error_msg = f"Error (handle_incoming_message): {e}\n\n"
+            print(error_msg)
+        else: 
+            error_msg = ""
+
+        prepare_message(phone, "reset")
+        message = prepare_message(phone, incoming_message)
+        send_whatsapp_message(phone, message)
+        # send_whatsapp_message('628112227980', f"{error_msg}Kirimkam 'reset' untuk merefresh percakapan baru.")
         raise
-   
-
-
+ 
 
 
 # Fungsi untuk mendapatkan respon dari model chatgpt
@@ -150,7 +204,7 @@ def prepare_message(phone, incoming_message):
     'past': [],
     'generated': []
     }
-    
+
 
     #Apabila incoming_message diawali dengan "GPT4/" maka gunakan model GPT4 dengan openai_api_key yang terpisah
     K = 5  #Jumlah Histori yang perlu di konsider

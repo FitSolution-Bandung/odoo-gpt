@@ -24,8 +24,8 @@ class User(db_sqlalchemy.Model):
 
     def __repr__(self):
         # return f'<User {self.id}: phone_number={self.phone_number}, entity_memory={self.entity_memory}>'
-        # return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, entity_memory={self.entity_memory} ,  created_at={self.created_at.strftime(date_format)}>'
-        return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, created_at={self.created_at.strftime(date_format)}>'
+        return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, entity_memory={self.entity_memory} ,  created_at={self.created_at.strftime(date_format)}>'
+        #return f'<user_id {self.id}: username={self.username}, url={self.url}, db={self.db}, nick_name={self.nick_name}, phone_number={self.phone_number}, created_at={self.created_at.strftime(date_format)}>'
     
     
 class Message(db_sqlalchemy.Model):
@@ -59,6 +59,9 @@ def inspect_db():
         print(f'Total tables: {len(tables)}. [database.py]')
         for i, table in enumerate(tables):
             print(f"Table [{i}]: {table.capitalize()}")
+    
+    return tables
+
         
 
 
@@ -91,6 +94,25 @@ def write_chat_to_db(user_name, recipient, past, sender ,generated):
 
     print(f"Message from {recipient} added to database")
     return msg
+
+def reset_memory(phone):
+    with app.app_context():
+        user_query = User.query.filter_by(phone_number=phone).first() 
+
+        print('\n\nMelakukan reset memori...\n\n')
+        user_query.entity_memory = None
+        db_sqlalchemy.session.commit()  
+        incoming_message = "Katakan 'Memori percakapan sebelumnya sudah saya hapus.'"
+
+    return incoming_message
+
+def call_memory(phone):
+    with app.app_context():
+        user_query = User.query.filter_by(phone_number=phone).first() 
+        memory = user_query.entity_memory
+
+    return memory
+
 
 
 init_app(app)

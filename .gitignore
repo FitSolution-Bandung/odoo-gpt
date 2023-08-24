@@ -2,3 +2,5 @@ user_data.db
 *.pyc
 *.db
 __pycache__
+.vscode
+.credentials

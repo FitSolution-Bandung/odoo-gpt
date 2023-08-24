@@ -29,7 +29,10 @@ def run():
 
     #check tables
     data = inspect_db()
+
+    print(f"Data = {data}")
     
+
     for i, data in enumerate(data):
         print(f'data[{i}] = {data}')
 
@@ -57,27 +60,7 @@ def run():
                 record_ids_to_delete = []
 
                 for record in records:
-                    # Add a checkbox for each record
-
-                    # record_dict = record.__dict__
-
-                    # key_to_print = [key for key in record_dict.keys() if not key.startswith("_")][1:] 
-                    # print(f"\n\nkey_to_print = {key_to_print}\n\n")
-
-    # id = db_sqlalchemy.Column(db_sqlalchemy.Integer, primary_key=True)
-    # username = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)
-    # url = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)   
-    # db = db_sqlalchemy.Column(db_sqlalchemy.String(64), unique=True)
-    # password = db_sqlalchemy.Column(db_sqlalchemy.String(64) )
-    # nick_name = db_sqlalchemy.Column(db_sqlalchemy.String(64))
-    # phone_number  = db_sqlalchemy.Column(db_sqlalchemy.String(20), nullable=False)
-    # messages = db_sqlalchemy.relationship('Message', backref='user', lazy=True)
-    # entity_memory = db_sqlalchemy.Column(db_sqlalchemy.PickleType, nullable=True)
-    # token = db_sqlalchemy.Column(db_sqlalchemy.String(64))
-    # created_at = db_sqlalchemy.Column(db_sqlalchemy.DateTime, default=datetime.utcnow, nullable=False, unique=True)
-                    
-                    
-                    # print(f"record = {record} type: {type(record_dict)}")
+            
 
 
                     if st.checkbox(f"🗑️ {record}"):
