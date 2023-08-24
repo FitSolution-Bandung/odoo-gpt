@@ -63,4 +63,8 @@ def run_flask():
     app.run(host='0.0.0.0', port=80)
 
 
-threading.Thread(target=run_flask).start()
+try:
+    threading.Thread(target=run_flask).start()
+except Exception as e:
+    print(f"Error: {e}")
+    print("Error: unable to start thread")
