@@ -62,7 +62,7 @@ def run_flask():
     #app.run(port=5000)
     port = 5000
     print(f"Running on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
 
 
 
