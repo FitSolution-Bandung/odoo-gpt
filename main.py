@@ -10,8 +10,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 # ======= STREAMLIT =======
 
-def run_streamlit():
-    os.system("streamlit run Menu.py --server.port 8500")
+# def run_streamlit():
+#     os.system("streamlit run Menu.py --server.port 8500")
 # threading.Thread(target=run_streamlit).start()
 
 
