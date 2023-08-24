@@ -60,7 +60,9 @@ def webhook():
 
 def run_flask():
     #app.run(port=5000)
-    app.run(host='0.0.0.0', port=81, debug=True)
+    port = 5000
+    print(f"Running on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=True)
 
 
 
