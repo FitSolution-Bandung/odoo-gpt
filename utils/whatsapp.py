@@ -7,6 +7,7 @@ import os
 import re
 import json
 import jsonpickle
+import sys
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -120,16 +121,19 @@ def handle_incoming_message(data):
                         remaining_time = created_at + timedelta(days=5) - datetime.now()
                         remaining_hours = remaining_time.total_seconds() // 3600
 
-                        msg = f"""Terimakasih Token anda sudah diverifikasi.\n\nURL: {url}\nUsername: {username}\nPassword: ***\nMobile Phone: {mobile_phone}\nCreated At: {created_at}\nToken will expire in {remaining_hours} hours"""
+                        msg += f"""Terimakasih Token anda sudah diverifikasi.\n\nURL: {url}\nUsername: {username}\nPassword: ***\nMobile Phone: {mobile_phone}\nCreated At: {created_at}\nToken will expire in {remaining_hours} hours"""
                         msg += "\n\nApakah ada yang bisa saya bantu?"            
 
                     else:
-                        msg = "Invalid token. Please check your token."
+                        msg += "Invalid token. Please check your token."
+
 
                     message = msg
                     send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
                     print(f'Pesan hasil pengecekan Token: {msg}')
+
                     exit()
+
             
             else:
                 user = User(phone_number=phone, username=user_name)
