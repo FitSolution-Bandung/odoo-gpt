@@ -56,7 +56,7 @@ def inspect_db():
         engine = db_sqlalchemy.engine
         inspector = inspect(engine)
         tables = inspector.get_table_names()
-        print(f'Total tables: {len(tables)}. [database.py]')
+        print(f'Total Tables: {len(tables)}. [database.py]')
         for i, table in enumerate(tables):
             print(f"Table [{i}]: {table.capitalize()}")
     

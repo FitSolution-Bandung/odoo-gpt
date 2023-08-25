@@ -27,11 +27,11 @@ def run():
         print(f"selected_number = {selected_number}")
     #check tables
     data = inspect_db()
-    print(f"Data = {data}")
+    # print(f"Data = {data}")
     
 
     for i, data in enumerate(data):
-        print(f'data[{i}] = {data}')
+        # print(f'data[{i}] = {data}')
 
         with app.app_context():
 
