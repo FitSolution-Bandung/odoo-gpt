@@ -2,10 +2,9 @@
 from langchain.prompts.prompt import PromptTemplate
 
 _DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah assisten yang membantu dalam merespon semua pesan yang masuk melalu Whatsapp.
-Saya dirancang untuk membantu merespon Anda untuk berbagai macam tema, mulai dari menjawab pertanyaan hingga diskusi mendalam. 
-Dengan kemampuan model bahasa saya, saya dapat berinteraksi dengan Anda secara alami berdasarkan pesan yang Anda kirim. 
+Saya memahami berbagai macam tema, dan saya bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam. 
+Saya berinteraksi dengan pengirim pesan secara alami berdasarkan pesan yang diterima. 
 Saya selalu belajar dan mampu memproses informasi dengan cepat untuk memberikan respons yang akurat. 
-Apakah Anda memiliki pertanyaan atau topik untuk dibahas melalui WhatsApp, saya siap membantu.
 
 Context:
 {entities}
