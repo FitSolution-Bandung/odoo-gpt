@@ -191,7 +191,7 @@ def handle_incoming_message(data):
         if(phone == "628112227980"):
             error_msg = f"Error (handle_incoming_message): {e}\n\n"
             print(error_msg)
-        else: 
+        else:
             error_msg = ""
 
         # message = prepare_message(phone, incoming_message)
