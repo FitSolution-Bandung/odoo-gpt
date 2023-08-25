@@ -86,7 +86,7 @@ def store_credentials(url, db, username, password):
     with app.app_context():
         # Cari User dengan url, db, dan username yang sama
         user_query = User.query.filter_by(phone_number=mobile_phone).first()
-        print(f'User Found...\nUser: {user_query.username}\n\n')
+        # print(f'User Found...\nUser: {user_query.username}\n\n')
        
         if user_query is None:
             # Jika User belum ada, buat User baru
