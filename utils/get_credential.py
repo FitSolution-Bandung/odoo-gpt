@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 # Password encryption
 load_dotenv('.credentials\.env')
+print(os.getenv("ENCRYPT_KEY"))
+
 key = os.getenv("ENCRYPT_KEY").encode()
 cipher_suite = Fernet(key)
 
