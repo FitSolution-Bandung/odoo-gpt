@@ -23,14 +23,12 @@ def run():
     #definiskan list option dari database user field phone_number
     with app.app_context():
         options = [user.phone_number for user in User.query.all()]
-        
-        selected_number = st.multiselect('Filter dengan Nomor Telp:', options)
+        selected_number = st.multiselect('Filter dengan Nomor Telp:', options, default=mobile_phone)
         selected_number.append(mobile_phone)
 
         print(f"selected_number = {selected_number}")
     #check tables
     data = inspect_db()
-
     print(f"Data = {data}")
     
 
