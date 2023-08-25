@@ -37,14 +37,14 @@ from pprint import pprint
 import streamlit as st
 
 
-
-
+from dotenv import load_dotenv  
+load_dotenv('.credentials/.env')
 
 
 # Fungsi untuk mengirim pesan WhatsApp menggunakan API Wablas
 def send_whatsapp_message(phone_number, message):
     url = "https://pati.wablas.com/api/v2/send-message"
-    token = os.environ['WABLAS TOKEN']  # Mengambil token dari environment variable
+    token = os.environ['WABLAS_TOKEN']  # Mengambil token dari environment variable
     headers = {"Authorization": token, "Content-Type": "application/json"}
     payload = {"data": [{"phone": phone_number, "message": message}]}
 
