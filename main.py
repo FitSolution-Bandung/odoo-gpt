@@ -6,13 +6,14 @@ from utils.database import init_app, db_sqlalchemy
 from flask import Flask, request, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 
-
+ 
 
 # ======= STREAMLIT =======
 
 def run_streamlit():
-    print ("Running streamlit")
-    os.system("streamlit run Menu.py --server.port 8500")
+    port_streamlit = 8500
+    print (f"Running streamlit on {port_streamlit} ...")
+    os.system(f"streamlit run Menu.py --server.port {port_streamlit}")
 threading.Thread(target=run_streamlit).start()
 
 
@@ -61,9 +62,9 @@ def webhook():
 
 def run_flask():
     #app.run(port=5000)
-    port = 5000
-    print(f"Running on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    port_flask = 5000
+    print(f"Running on port {port_flask} ...")
+    app.run(host='0.0.0.0', port=port_flask, debug=False, use_reloader=False)
 
 
 

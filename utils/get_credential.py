@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 import os
 import re
+from dotenv import load_dotenv  
 
 # Password encryption
+load_dotenv('.credentials\.env')
 key = os.getenv("ENCRYPT_KEY").encode()
 cipher_suite = Fernet(key)
-
 
 # Fungsi untuk mendapatkan kredensial pengguna berdasarkan token (outputnya : url, username, password, created_at)
 from sqlalchemy import create_engine, Column, Integer, String, DateTime
@@ -21,6 +22,7 @@ from utils.database import User, db_sqlalchemy, app
 
 
 # Password encryption
+load_dotenv('/.credentials/.env')
 key = os.getenv("ENCRYPT_KEY").encode()
 cipher_suite = Fernet(key)
 
