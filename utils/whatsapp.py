@@ -194,9 +194,9 @@ def handle_incoming_message(data):
         else: 
             error_msg = ""
 
-        message = prepare_message(phone, incoming_message)
-        send_whatsapp_message(phone, message)
-        # send_whatsapp_message('628112227980', f"{error_msg}Kirimkam 'reset' untuk merefresh percakapan baru.")
+        # message = prepare_message(phone, incoming_message)
+        # send_whatsapp_message(phone, message)
+        # # send_whatsapp_message('628112227980', f"{error_msg}Kirimkam 'reset' untuk merefresh percakapan baru.")
         raise
  
 
