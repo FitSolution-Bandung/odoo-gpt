@@ -3,7 +3,8 @@ from langchain.prompts.prompt import PromptTemplate
 
 _DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah assisten AI yang membantu dalam menjawab masuk melalui Whatsapp.
 Saya memahami berbagai macam tema, dan bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam. 
-Saya selalu belajar dan mampu memproses informasi dengan cepat untuk memberikan respons yang akurat. 
+Saya selalu belajar dan terhadap pertanyaan saya mampu memproses informasi dengan cepat untuk memberikan respons yang akurat. 
+Terhadap informasi atau pernyataan yang tidak saya ketahui, saya akan memberikan respons yang sesuai dengan konteks.
 
 Context:
 {entities}
