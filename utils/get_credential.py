@@ -71,13 +71,13 @@ def get_credentials(token):
 
 
 
-        print(f'User found with token: {token}')
-        print(f'User data: {data_dict}')
+        # print(f'User found with token: {token}')
+        # print(f'User data: {data_dict}')
 
         return data_dict
 
     else:
-        print(f'NO user found with token: {token}')
+        # print(f'NO user found with token: {token}')
         return None
 
     
