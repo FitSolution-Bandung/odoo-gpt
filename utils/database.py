@@ -49,7 +49,7 @@ def inspect_db():
     with app.app_context():
         
         # Ketika mau drop di un-comment dulu (PENTING SAAT akan REINSTAL)
-        db_sqlalchemy.drop_all()
+        # db_sqlalchemy.drop_all()
         # user.__table__.drop(db_sqlalchemy.engine)
 
         # Get table names
