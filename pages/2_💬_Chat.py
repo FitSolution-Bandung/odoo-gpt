@@ -99,9 +99,6 @@ def show_chat_histories(phone_number, user_input=None):
 
 
 def clear_chat_histories(phone_number):
-    
-    print(f'\n\nClearing Chat History of {phone_number} ...\n\n')
-    
     with st.expander("Clear Chat History", expanded=True):
     
       if st.checkbox(f"**DELETE** from chat history of [{phone_number}]"):
