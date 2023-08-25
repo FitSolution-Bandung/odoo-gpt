@@ -9,7 +9,7 @@ from tempfile import NamedTemporaryFile
 from google.cloud import vision, videointelligence
 
 GOOGLE_MAPS_API_KEY = os.environ['GOOGLE_MAPS_API_KEY']
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '.credentials\erp-2017-d844ca1fcc74.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '.credentials/erp-2017-d844ca1fcc74.json'
 openai.api_key = os.environ['OPENAI_KEY']
 
 
