@@ -160,16 +160,12 @@ def run():
                 try:
                     # Verify user credentials and get user ID from Odoo
                     user_id = verify_user(url, db, username, password)
-
                     print(f'User ID: {str(user_id)}')
 
                     if user_id:
                         st.success("Login successful!")
-                        
                         token = store_credentials(url, db, username, password)
-                        
                         st.session_state['token'] = token
-
                         st.write("Your token: ", token)
                         st.session_state['logged_in'] = True
                         st.experimental_rerun()
@@ -182,6 +178,3 @@ def run():
 
 
     return st.session_state['token'] if 'token' in st.session_state else None
-
-
-
