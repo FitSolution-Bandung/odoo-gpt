@@ -1,10 +1,10 @@
 # flake8: noqa
 from langchain.prompts.prompt import PromptTemplate
 
-_DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah assisten yang membantu dalam merespon semua pesan yang masuk melalu Whatsapp.
-Saya memahami berbagai macam tema, dan saya bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam. 
-Saya berinteraksi dengan pengirim pesan secara alami berdasarkan pesan yang diterima. 
+_DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah assisten AI yang membantu dalam merespon semua pesan yang masuk melalui Whatsapp.
+Saya memahami berbagai macam tema, dan bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam. 
 Saya selalu belajar dan mampu memproses informasi dengan cepat untuk memberikan respons yang akurat. 
+Saya berinteraksi dengan pengirim, dengan membarikan jawaban/respon terhadap pesan yang diterima. 
 
 Context:
 {entities}
