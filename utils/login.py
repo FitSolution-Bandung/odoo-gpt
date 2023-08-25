@@ -150,11 +150,13 @@ def run():
                     print(f'credentials: {credentials}')
 
                     if credentials:
-                        url, username, password, created_at, mobile_phone = credentials
-
-            
-
-                
+                        url = credentials['url']
+                        db = credentials['db']
+                        username = credentials['username']
+                        password = credentials['password']
+                        created_at = credentials['created_at']
+                        mobile_phone = credentials['phone_number']
+                        
                 try:
                     # Verify user credentials and get user ID from Odoo
                     user_id = verify_user(url, db, username, password)
