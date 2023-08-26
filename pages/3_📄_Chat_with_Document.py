@@ -67,11 +67,8 @@ def run():
                 print(f'Vector Strore = {str(vectorstore)}')
 
         else:
-            with get_openai_callback() as cb:
-                embeddings = OpenAIEmbeddings(openai_api_key=API_O)
-
-                print(f'Embedding Callback = {str(cb)}')
-                print(f'Embedding chunks... with {len(chunks)} chunks')
+            embeddings = OpenAIEmbeddings(openai_api_key=API_O)
+            print(f'Embedding chunks... with {len(chunks)} chunks')
 
             vectorstore = FAISS.from_texts(chunks, embedding=embeddings)
             with open(f"{store_name}.pkl","wb") as f:
