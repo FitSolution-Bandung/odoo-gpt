@@ -76,7 +76,7 @@ def run():
 
 
         # Menerima pertanyaan dari pengguna
-        query = st.text_input("Ask questions about related your upload pdf file")
+        query = st.text_input("Ajukan pertanyaan tentang terkait file pdf unggahan Anda")
 
         if query:
            
