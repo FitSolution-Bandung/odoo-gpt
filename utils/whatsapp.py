@@ -18,6 +18,7 @@ from utils.get_credential import get_credentials, is_valid_token
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
+
 from langchain.chains.conversation.memory import ConversationEntityMemory, ConversationBufferWindowMemory
 # from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from utils.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE

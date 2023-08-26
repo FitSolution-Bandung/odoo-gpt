@@ -15,6 +15,9 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from langchain.llms import OpenAI
+
+from langchain.chat_models import ChatOpenAI
+
 from langchain.chains.question_answering import load_qa_chain
 from langchain.callbacks import get_openai_callback
 import os
@@ -83,7 +86,7 @@ def run():
 
 
             docs = vectorstore.similarity_search(query=query, k=3)
-            llm = OpenAI(temperature=0, openai_api_key=API_O, model_name=MODEL)
+            llm = ChatOpenAI(temperature=0, openai_api_key=API_O, model_name=MODEL)
             chain = load_qa_chain(llm=llm, chain_type="stuff")
 
             with get_openai_callback() as cb:
