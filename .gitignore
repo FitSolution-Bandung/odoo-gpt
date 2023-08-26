@@ -4,3 +4,5 @@ user_data.db
 __pycache__
 .vscode
 .credentials
+myenv
+*.pkl

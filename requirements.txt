@@ -1,3 +1,9 @@
 streamlit
 cryptography
-
+faiss-cpu
+flask_sqlalchemy
+python-dotenv
+PyPDF2
+langchain
+openai
+tiktoken
