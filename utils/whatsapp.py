@@ -266,7 +266,7 @@ def prepare_message(phone, incoming_message):
     
 
         with get_openai_callback() as cb:
-            output = Conversation.predict(input=incoming_message)
+            output = Conversation.run(input=incoming_message)
             print(f'\nOutput: {output}\n')
             print(f"Callback: {cb}")
 
