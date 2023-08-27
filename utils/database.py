@@ -43,6 +43,21 @@ class Message(db_sqlalchemy.Model):
         return f'<message_id {self.id}: timestamp={self.timestamp.strftime(date_format)}, recipient={self.recipient}, past={self.past}, sender={self.sender}, generated={self.generated}>'
 
 
+class Document(db_sqlalchemy.Model):
+    __tablename__ = 'document'
+
+    id = db_sqlalchemy.Column(db_sqlalchemy.Integer, primary_key=True)
+    title = db_sqlalchemy.Column(db_sqlalchemy.String(128), nullable=False)
+    pkl_data = db_sqlalchemy.Column(db_sqlalchemy.LargeBinary, nullable=False)  # Menyimpan data pickle
+    uploaded_at = db_sqlalchemy.Column(db_sqlalchemy.DateTime, default=datetime.utcnow, nullable=False)
+    user_id = db_sqlalchemy.Column(db_sqlalchemy.Integer, db_sqlalchemy.ForeignKey('user.id'), nullable=False)  # ID pengguna yang mengunggah dokumen
+
+    def __repr__(self):
+        return f'<document_id {self.id}: title={self.title}, uploaded_at={self.uploaded_at.strftime(date_format)}, user_id={self.user_id}>'
+
+
+
+
 
 def inspect_db():
     # Create a context for the current app

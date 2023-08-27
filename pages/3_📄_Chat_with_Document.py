@@ -54,8 +54,11 @@ def run():
     # Mengunggah file PDF
     pdf = st.file_uploader("Upload your PDF", type='pdf')
 
+    #buat button untuk download file pdf
+
      
     if pdf is not None:
+        st.download_button(f"Download : {pdf.name}", "pdf", f"{pdf.name}", "application/pdf", key=None, help=None)
         # st.write(type(pdf))
         pdf_reader = PdfReader(pdf)
         text = "".join(page.extract_text() for page in pdf_reader.pages)
@@ -75,6 +78,7 @@ def run():
         # Menyimpan nama file PDF
         store_name = pdf.name[:-4]
         pkl_path = os.path.join(PKL_FOLDER, f"{store_name}.pkl")
+
 
          # Memeriksa apakah embeddings sudah ada
         if os.path.exists(pkl_path):
@@ -96,7 +100,7 @@ def run():
 
          
 
-        with st.expander(f"**{f}**"):
+        with st.expander(f'File: "**{f.name}**"'):
             st.write(vectorstore)
 
 

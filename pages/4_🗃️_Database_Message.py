@@ -30,7 +30,7 @@ def run():
     # print(f"Data = {data}")
     
 
-    for i, data in enumerate(data):
+    for i, data in enumerate({'user','message'}):
         # print(f'data[{i}] = {data}')
 
         with app.app_context():
