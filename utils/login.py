@@ -7,8 +7,12 @@ from flask_sqlalchemy import SQLAlchemy
 from utils.database import User, db_sqlalchemy, app
 from datetime import datetime
 from urllib.parse import urlparse
+
+
 from socket import gaierror
 from utils.get_credential import get_credentials, is_valid_token
+from utils.send_email import send_email
+
 from datetime import datetime
 
 # Password encryption
@@ -94,6 +98,31 @@ def store_credentials(url, db, username, password):
             user_query = User(url=url, db=db, username=username, password=password_encrypted, token=token, phone_number=mobile_phone, nick_name=nick_name, created_at=datetime.strptime(now, '%Y-%m-%d %H:%M:%S'))
             db_sqlalchemy.session.add(user_query)
             db_sqlalchemy.session.commit()
+
+            #Kirim Email tentang Credential
+            subject = "Your Odoo-GPT Credentials"
+            to_email = username
+            message = f"""Your Odoo-GPT Credentials:\n\n
+            URL: {url}\nDatabase: {db}
+            Username: {username}
+            Password: ***
+            Token: {token}
+            Created at: {now}
+            Mobile Phone: {mobile_phone}
+            Nick Name: {nick_name}\n"""
+            
+
+            
+
+            try:
+                send_email(subject, message, to_email)
+                print(f'Email sent to {to_email}')
+            except Exception as e:
+                print(f'Error sending email: {e}')
+
+
+
+
         else:
             # Jika User sudah ada, update User
             user_query.password = password_encrypted
