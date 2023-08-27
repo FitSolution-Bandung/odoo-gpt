@@ -272,7 +272,7 @@ def prepare_message(phone, incoming_message):
             print(f"Total Tokens: {cb.total_tokens}")
             print(f"Prompt Tokens: {cb.prompt_tokens}")
             print(f"Completion Tokens: {cb.completion_tokens}")
-            print(f"Total Cost (IDR): IDR {cb.total_cost*15000}")
+            print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
 
 
         #Menyimpan Entity Memory ke database
