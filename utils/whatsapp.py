@@ -268,7 +268,12 @@ def prepare_message(phone, incoming_message):
         with get_openai_callback() as cb:
             output = Conversation.run(input=incoming_message)
             print(f'\nOutput: {output}\n')
-            print(f"Callback: {cb}")
+    
+            print(f"Total Tokens: {cb.total_tokens}")
+            print(f"Prompt Tokens: {cb.prompt_tokens}")
+            print(f"Completion Tokens: {cb.completion_tokens}")
+            print(f"Total Cost (IDR): IDR {cb.total_cost*15000}")
+
 
         #Menyimpan Entity Memory ke database
         buf_memory = Conversation.memory #sebelumnya sampe memory doang
