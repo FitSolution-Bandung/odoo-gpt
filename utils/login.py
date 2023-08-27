@@ -127,7 +127,7 @@ def run():
         with st.form(key='login_form'):
             url = st.text_input("Odoo URL", value='https://erp.fujicon-japan.com')
             db = st.text_input("Database", value='erp')
-            username = st.text_input("Username", value='andhi@fujicon-japan.com')
+            username = st.text_input("Username", )
             password = st.text_input("Password", type="password")
            
             #Atau cukup masukan Token yang sudah diperoleh sebelumnya.

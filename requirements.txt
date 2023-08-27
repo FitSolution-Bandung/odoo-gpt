@@ -7,3 +7,7 @@ PyPDF2
 langchain
 openai
 tiktoken
+jsonpickle
+google-cloud
+google-cloud-vision
+google-cloud-videointelligence

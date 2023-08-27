@@ -18,6 +18,7 @@ from utils.get_credential import get_credentials, is_valid_token
 
 from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
+from langchain.callbacks import get_openai_callback
 
 from langchain.chains.conversation.memory import ConversationEntityMemory, ConversationBufferWindowMemory
 # from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
@@ -38,6 +39,7 @@ from .whatsapp_utils import audio_to_text, get_location_from_message,recognize_i
 
 from pprint import pprint
 import streamlit as st
+
 
 
 from dotenv import load_dotenv  
@@ -262,9 +264,12 @@ def prepare_message(phone, incoming_message):
                                         memory=memory,
                                         verbose=True)
     
-        output = Conversation.predict(input=incoming_message)
-        print(f'\nOutput: {output}\n')
-        
+
+        with get_openai_callback() as cb:
+            output = Conversation.predict(input=incoming_message)
+            print(f'\nOutput: {output}\n')
+            print(f"Callback: {cb}")
+
         #Menyimpan Entity Memory ke database
         buf_memory = Conversation.memory #sebelumnya sampe memory doang
         

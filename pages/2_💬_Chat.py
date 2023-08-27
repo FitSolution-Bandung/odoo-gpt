@@ -158,7 +158,7 @@ def run():
     chat_history_expander = st.expander("💬 Chat History", expanded=True)
     chat_history_expander.empty()
 
-    user_input = st.chat_input(placeholder="Ketik pesan disini ...")
+    user_input = st.chat_input(placeholder="Ketik pesan disini ...",)
 
     #with st.expander("💬 Chat History", expanded=True):
     with chat_history_expander:
