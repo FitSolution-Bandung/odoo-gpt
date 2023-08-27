@@ -285,7 +285,7 @@ def prepare_message(phone, incoming_message):
             else:
                 print(f"User found with phone: {phone}")
                 try:
-                    st.session_state["entity_memory"] = buf_memory #save entity memory to session state
+                    # st.session_state["entity_memory"] = buf_memory #save entity memory to session state
 
                     buf_memory_jsonpickle = jsonpickle.encode(buf_memory)
                     user_query.entity_memory = buf_memory_jsonpickle
