@@ -51,13 +51,24 @@ def run():
     if not os.path.exists(PKL_FOLDER):
         os.makedirs(PKL_FOLDER)
     
+
     # Mengunggah file PDF
     pdf = st.file_uploader("Upload your PDF", type='pdf')
 
-    #buat button untuk download file pdf
+    #reset session state untuk message
+    if "message" not in st.session_state:
+        st.session_state["message"] = ""
+
 
      
     if pdf is not None:
+        
+        #total cost
+        if "total_cost" not in st.session_state:
+            st.session_state["total_cost"] = 0
+
+
+        #buat button untuk download file pdf
         st.download_button(f"Download : {pdf.name}", "pdf", f"{pdf.name}", "application/pdf", key=None, help=None)
         # st.write(type(pdf))
         pdf_reader = PdfReader(pdf)
@@ -78,6 +89,8 @@ def run():
         # Menyimpan nama file PDF
         store_name = pdf.name[:-4]
         pkl_path = os.path.join(PKL_FOLDER, f"{store_name}.pkl")
+        print(f'Pkl Path = {pkl_path}')
+
 
 
          # Memeriksa apakah embeddings sudah ada
@@ -101,36 +114,68 @@ def run():
          
 
         with st.expander(f'File: "**{f.name}**"'):
-            st.write(vectorstore)
 
+            st.write(vectorstore)
+            st.write("---")
+            total_cost = st.empty()
+
+           
+
+
+
+
+        #Definisikan container bernama message_box berupa expander yang empty untuk bisa di isi oleh message dari session state
+        message_box = st.expander(f"**Chat History**", expanded=True)
+
+        with message_box:
+            spinner = st.empty()
+            if st.session_state["message"] != "":
+                if st.button("Clear Chat History"):
+                    st.session_state["message"] = ""
+                    st.session_state["total_cost"] = 0
+                    st.experimental_rerun()
 
         # Menerima pertanyaan dari pengguna
-        query = st.text_input("Ajukan pertanyaan tentang terkait file pdf unggahan Anda")
+        message = ""
+        query = st.chat_input(placeholder="Ajukan pertanyaan tentang terkait file pdf unggahan Anda",)
 
         if query:
-           
-            docs = vectorstore.similarity_search(query=query, k=5)
+            #tambahkan spinner
+            with spinner:
+                with st.spinner("Similarity Searching ..."):
+                    docs = vectorstore.similarity_search(query=query, k=5)
 
-            # docs = vectorstore.similarity_search(query=query, )
+                # with st.expander(f"**Similarity Search** : {len(docs)} dokumen", expanded=False):
+                #     st.write(docs)
+          
+                with st.spinner("Call LLM ..."):
+                    llm = ChatOpenAI(temperature=0, openai_api_key=API_O, model_name=MODEL, verbose=True)
+                    chain = load_qa_chain(llm=llm, chain_type="stuff")
+                    with get_openai_callback() as cb:
+                        response = chain.run(input_documents=docs, question=query)
+                        print(f'Output = {response}')
+                        st.session_state["total_cost"] += cb.total_cost
+                        callbact_text = f"Total Tokens: {cb.total_tokens}\nPrompt Tokens: {cb.prompt_tokens}\nCompletion Tokens: {cb.completion_tokens}\nCost (IDR): IDR {cb.total_cost*15000}\nTotal Cost (IDR): IDR {st.session_state['total_cost']*15000}    "
+                        print(callbact_text)
+                           
+                    with total_cost:
+                        callbact_text = callbact_text.replace("\n", "\n\n")
+                        st.write(callbact_text)
 
-            with st.expander(f"**Similarity Search** : {len(docs)} dokumen"):
-                st.write(docs)
-            
-            
-            llm = ChatOpenAI(temperature=0, openai_api_key=API_O, model_name=MODEL)
-            chain = load_qa_chain(llm=llm, chain_type="stuff")
-            with get_openai_callback() as cb:
-                response = chain.run(input_documents=docs, question=query)
-                print(f'Output = {response}')
-                
-                print(f"Total Tokens: {cb.total_tokens}")
-                print(f"Prompt Tokens: {cb.prompt_tokens}")
-                print(f"Completion Tokens: {cb.completion_tokens}")
-                print(f"Total Cost (IDR): IDR {cb.total_cost*15000}")
+
+            message = f'***Q: {query}*** \n\nA: {response}\n\n'
+            st.session_state["message"] += message
 
 
 
-            st.write(response)
+            #Tampilkan message dari session state
+            message_box.write(st.session_state["message"])
+
+
+
+
+
+
          
        
         

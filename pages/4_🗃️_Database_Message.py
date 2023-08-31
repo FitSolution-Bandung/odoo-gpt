@@ -3,7 +3,7 @@ import utils.login as login
 import utils.logout as logout
 import time
 
-from utils.database import User, Message, app, db_sqlalchemy, inspect_db
+from utils.database import User, Message, Document, app, db_sqlalchemy, inspect_db
 from utils import sidebar as sidebar
 import pandas as pd
 
@@ -30,7 +30,8 @@ def run():
     # print(f"Data = {data}")
     
 
-    for i, data in enumerate({'user','message'}):
+    j = 0
+    for i, data in enumerate({'user','message','document'}):
         # print(f'data[{i}] = {data}')
 
         with app.app_context():
@@ -43,12 +44,16 @@ def run():
                     # records = model.query.filter_by(recipient=mobile_phone).all()
                     records = model.query.filter(model.recipient.in_(selected_number)).all()
 
-                else:
+                elif model == User:
                     # records = model.query.filter_by(phone_number=mobile_phone).all()
                     records = model.query.filter(model.phone_number.in_(selected_number)).all()
 
+                else:
+                    records = model.query.all()
+
             else:
                 records = model.query.all()
+        
         
             with st.expander(f"**Table {str(i+1)}:  {data.capitalize()}  [{len(records)}]**"):
 
@@ -57,13 +62,11 @@ def run():
                 record_ids_to_delete = []
 
                 for record in records:
-            
-
-
-                    if st.checkbox(f"🗑️ {record}"):
+                    j += 1
+                    if st.checkbox(f"🗑️ {record} [{j}]"):
                         records_to_delete.append(record)
                         record_ids_to_delete.append(record.id)
-                
+                     
                 # Add a delete button for the selected records
                 if len(record_ids_to_delete) > 0:
 
@@ -96,7 +99,7 @@ def run():
                         if not see_all_records:
                             if model == Message:
                                 model.query.filter_by(recipient=mobile_phone).delete()  # Menghapus semua baris dari tabel
-                            else:
+                            elif model == User:
                                 model.query.filter_by(phone_number=mobile_phone).delete()
                         else:
                             model.query.delete()  # Menghapus semua baris dari tabel
