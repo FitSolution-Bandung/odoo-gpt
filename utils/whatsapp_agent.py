@@ -30,7 +30,7 @@ tools = [
         description="berguna ketika Anda perlu menjawab pertanyaan tentang informasi terkini",
     ),
     Tool(
-        name="Date and Time",
+        name="Now",
         func=get_date_time,
         description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal dan waktu",
     ),
