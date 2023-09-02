@@ -14,7 +14,8 @@ Human: {input}
 You:"""
 
 ENTITY_MEMORY_CONVERSATION_TEMPLATE = PromptTemplate(
-    input_variables=["entities", "chat_history", "input"],
+    # input_variables=["entities", "chat_history", "input"],
+    input_variables=["chat_history", "input"],
     template=_DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE,
 )
 
