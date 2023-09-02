@@ -22,9 +22,9 @@ load_dotenv('.credentials/.env')
 GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
 
 
-search = GoogleSearchAPIWrapper(
+search = GoogleSearchAPIWrapper()
 tools = tools
-)
+
 tools = [
     Tool(
         name="Search",
