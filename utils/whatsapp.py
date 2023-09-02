@@ -20,7 +20,8 @@ from langchain import OpenAI, ConversationChain, LLMChain, PromptTemplate
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks import get_openai_callback
 
-from langchain.chains.conversation.memory import ConversationEntityMemory, ConversationBufferWindowMemory
+from langchain.chains.conversation.memory import ConversationEntityMemory, ConversationBufferWindowMemory, ConversationBufferMemory
+# from langchain.memory import ConversationBufferMemory
 # from langchain.chains.conversation.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from utils.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 
@@ -250,7 +251,9 @@ def prepare_message(phone, incoming_message):
         if buf_memory_json is None:
             # We set a low k=2, to only keep the last 2 interactions in memory
             #memory = ConversationBufferWindowMemory(k=K)
-            memory = ConversationEntityMemory(llm=llm, k=K)
+            # memory = ConversationEntityMemory(llm=llm, k=K)
+
+            memory = ConversationBufferMemory(memory_key="chat_history")
             # print('\n\nGetMemory from DB: Tidak ditemukan memory dalam DB\n\n')
 
         else:

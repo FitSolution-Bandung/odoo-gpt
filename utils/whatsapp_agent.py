@@ -30,7 +30,7 @@ tools = [
 
 
 prefix = """Lakukan percakapan dengan manusia, jawablah pertanyaan-pertanyaan berikut sebaik mungkin. Anda memiliki akses ke tools berikut:"""
-suffix = """Mulai!"
+suffix = """Mulai!
 
 {chat_history}
 Question: {input}
