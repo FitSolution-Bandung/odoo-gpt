@@ -94,7 +94,7 @@ def predict_gpt(phone_number, incoming_message):
     "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
     }
     
-    agent = initialize_agent(tools,llm,
+    agent = initialize_agent(tools=tools,llm=llm,
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION ,
         verbose=True,
         # agent_kwargs=agent_kwargs,
