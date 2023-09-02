@@ -139,7 +139,8 @@ def run():
 
     #Cetak opsi nomor telp user
     with app.app_context():
-        options = list(set([f'{message.recipient}' for message in Message.query.all()]))
+        # options = list(set([f'{message.recipient}' for message in Message.query.all()]))
+        options = [user.phone_number for user in User.query.all()]
         selected_number = st.selectbox('Filter dengan Nomor Telp:', options)
         user = User.query.filter_by(phone_number=selected_number).first()
 
