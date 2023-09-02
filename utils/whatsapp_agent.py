@@ -15,7 +15,7 @@ import jsonpickle
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
 from utils.whatsapp import prepare_message
-from utils.tools import GetDateTime
+from utils.tools import GetDateTime, get_date_time
 
 
 
@@ -32,14 +32,13 @@ tools = [
         func=search.run,
         description="berguna ketika Anda perlu menjawab pertanyaan tentang informasi terkini",
     ),
-    GetDateTime(),
     
     
-    # Tool(
-    #     name="Get Date and Time",
-    #     func=get_date_time.run,
-    #     description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu) saat ini",
-    # ),
+    Tool(
+        name="Get Date and Time",
+        func=get_date_time,
+        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu) saat ini",
+    ),
 ]
 
 
