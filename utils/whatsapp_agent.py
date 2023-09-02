@@ -106,7 +106,7 @@ def predict_gpt(phone_number, incoming_message):
             print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
 
     except Exception as e:
-        print(f'Error : {e}')
+        print(f'Error: {e} [predict_gpt] line 109]')
         output = str(e)
 
     memory = save_memory(phone_number, memory)
