@@ -13,6 +13,7 @@ import jsonpickle
 
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
+from utils.whatsapp import prepare_message
 
 
 load_dotenv('.credentials/.env')
@@ -89,13 +90,11 @@ def predict_gpt(phone_number, incoming_message):
         agent=agent, tools=tools, verbose=True, memory=memory
     )
 
+    with get_openai_callback() as cb:
 
-    try:
-        with get_openai_callback() as cb:
+        try:
             # output = Conversation.run(input=incoming_message)
 
-
-            
             output = agent_chain.run(input=incoming_message)
             
             print(f'\nOutput: {output}\n')
@@ -104,13 +103,15 @@ def predict_gpt(phone_number, incoming_message):
             print(f"Prompt Tokens: {cb.prompt_tokens}")
             print(f"Completion Tokens: {cb.completion_tokens}")
             print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
+        
+            memory = save_memory(phone_number, memory)
+            print(f'\n\nMemory saved to database (after): {memory}')
 
-    except Exception as e:
-        print(f'Error: {e} [predict_gpt] line 109]')
-        output = str(e)
+        except Exception as e:
+            print(f'Error: {e} [predict_gpt] line 109]')
+            output = prepare_message(phone_number, incoming_message)
 
-    memory = save_memory(phone_number, memory)
-    print(f'\n\nMemory saved to database (after): {memory}')
+
 
 
 
