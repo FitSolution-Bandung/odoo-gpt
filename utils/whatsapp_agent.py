@@ -78,7 +78,7 @@ def save_memory(phone, memory):
 def predict_gpt(phone_number, incoming_message):
 
     memory = get_memory(phone_number)
-    # print(f'\nMemory from database: {memory}')
+    print(f'\n\nMemory from database (before) : {memory}')
    
 
     MODEL = 'gpt-3.5-turbo'
@@ -110,7 +110,7 @@ def predict_gpt(phone_number, incoming_message):
         output = str(e)
 
     memory = save_memory(phone_number, memory)
-    # print(f'\nMemory saved to database (after): {memory}')
+    print(f'\n\nMemory saved to database (after): {memory}')
 
 
 
