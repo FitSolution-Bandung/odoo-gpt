@@ -84,7 +84,7 @@ def predict_gpt(phone_number, incoming_message):
    
 
     MODEL = 'gpt-3.5-turbo'
-    llm = ChatOpenAI(temperature=0, model=MODEL)
+    # llm = ChatOpenAI(temperature=0, model=MODEL)
   
 
     llm_chain = LLMChain(llm=ChatOpenAI(temperature=0, model=MODEL), prompt=prompt)
@@ -125,8 +125,8 @@ def predict_gpt(phone_number, incoming_message):
             print(f'\n\nMemory saved to database (after): {memory}')
 
         except Exception as e:
-            print(f'Error: {e} [predict_gpt] line 109]')
             output = prepare_message(phone_number, incoming_message)
+            print(f'Error: {e} [predict_gpt] line 109]')
 
 
 
