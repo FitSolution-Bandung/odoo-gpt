@@ -31,7 +31,7 @@ tools = [
     ),
     Tool(
         name="Now",
-        func=get_date_time(),
+        func=get_date_time,
         description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal dan waktu",
     ),
 ]
