@@ -97,7 +97,7 @@ def predict_gpt(phone_number, incoming_message):
     agent = initialize_agent(tools,llm,
         agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION ,
         verbose=True,
-        agent_kwargs=agent_kwargs,
+        # agent_kwargs=agent_kwargs,
         memory=memory,
     )
 
