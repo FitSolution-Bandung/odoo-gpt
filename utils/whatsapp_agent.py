@@ -112,7 +112,7 @@ def predict_gpt(phone_number, incoming_message):
         try:
             # output = Conversation.run(input=incoming_message)
 
-            output = agent_chain.run(input=incoming_message)
+            output = agent_chain.run(input=incoming_message, )
             
             print(f'\nOutput: {output}\n')
 
