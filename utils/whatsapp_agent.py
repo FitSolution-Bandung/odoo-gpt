@@ -23,7 +23,7 @@ GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
 
 
 search = GoogleSearchAPIWrapper()
-tools = tools
+datetime = tools.GetDateTime()
 
 tools = [
     Tool(
@@ -33,8 +33,8 @@ tools = [
     ),
     Tool(
         name="Now",
-        func=tools.get_date_time,
-        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal dan waktu",
+        func=datetime.run,
+        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu)",
     ),
 ]
 
