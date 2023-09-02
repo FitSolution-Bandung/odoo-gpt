@@ -5,7 +5,7 @@ _DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah FujiBoy, assisten 
 Saya memiliki pengetahuan yang luas dalam berbagai bidang, dan bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam.
 
 Context:
-entities (harusnya ada { } nya)
+entities (harusnya ada kurung kurawa nya)
 
 Current conversation:
 {chat_history}
