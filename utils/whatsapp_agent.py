@@ -18,12 +18,13 @@ from utils.whatsapp import prepare_message
 from utils.tools import GetDateTime
 
 
+
 load_dotenv('.credentials/.env')
 GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
 
 
 search = GoogleSearchAPIWrapper()
-get_date_time = GetDateTime()
+get_date_time = 
 
 tools = [
     Tool(
@@ -31,11 +32,14 @@ tools = [
         func=search.run,
         description="berguna ketika Anda perlu menjawab pertanyaan tentang informasi terkini",
     ),
-    Tool(
-        name="Get Date and Time",
-        func=get_date_time.run,
-        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu) saat ini",
-    ),
+    GetDateTime(),
+    
+    
+    # Tool(
+    #     name="Get Date and Time",
+    #     func=get_date_time.run,
+    #     description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu) saat ini",
+    # ),
 ]
 
 
