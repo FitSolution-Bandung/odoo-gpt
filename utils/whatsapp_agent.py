@@ -15,7 +15,7 @@ import jsonpickle
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
 from utils.whatsapp import prepare_message
-from utils import tools as tools
+from utils.tools import GetDateTime
 
 
 load_dotenv('.credentials/.env')
@@ -23,7 +23,7 @@ GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
 
 
 search = GoogleSearchAPIWrapper()
-datetime = tools.GetDateTime()
+get_date_time = GetDateTime()
 
 tools = [
     Tool(
@@ -32,9 +32,9 @@ tools = [
         description="berguna ketika Anda perlu menjawab pertanyaan tentang informasi terkini",
     ),
     Tool(
-        name="Now",
-        func=datetime.run,
-        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu)",
+        name="Get Date and Time",
+        func=get_date_time.run,
+        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal, hari dan jam (waktu) saat ini",
     ),
 ]
 
