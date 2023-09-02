@@ -5,16 +5,16 @@ _DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE = """Saya adalah FujiBoy, assisten 
 Saya memiliki pengetahuan yang luas dalam berbagai bidang, dan bisa membantu mulai dari menjawab pertanyaan hingga diskusi mendalam.
 
 Context:
-{entities}
+entities (harusnya ada { } nya)
 
 Current conversation:
-{history}
+{chat_history}
 Last line:
 Human: {input}
 You:"""
 
 ENTITY_MEMORY_CONVERSATION_TEMPLATE = PromptTemplate(
-    input_variables=["entities", "history", "input"],
+    input_variables=["entities", "chat_history", "input"],
     template=_DEFAULT_ENTITY_MEMORY_CONVERSATION_TEMPLATE,
 )
 
