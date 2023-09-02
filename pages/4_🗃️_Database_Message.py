@@ -66,6 +66,14 @@ def run():
                     if st.checkbox(f"🗑️ {record} [{j}]"):
                         records_to_delete.append(record)
                         record_ids_to_delete.append(record.id)
+
+                    #reset memory only (make it empty) of the specific record
+                    if st.button(f'Reset memory of record [{j}]'):
+                        record.entity_memory = None
+                        db_sqlalchemy.session.commit()
+                        st.success(f"Memory of record **{record} [{j}]** has been reset to empty")
+                        st.experimental_rerun()
+
                      
                 # Add a delete button for the selected records
                 if len(record_ids_to_delete) > 0:
@@ -110,6 +118,10 @@ def run():
                         st.success("Records from Table " + str(i+1) + " are deleted")
                         time.sleep(1) # wait some time then refresh the page
                         st.experimental_rerun()
+
+                
+                
+
 
 
 if st.session_state.get('token') is None:
