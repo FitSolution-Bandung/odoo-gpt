@@ -15,7 +15,7 @@ import jsonpickle
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
 from utils.whatsapp import prepare_message
-from utils.tools import GetDateTime, get_date_time
+from utils.tools import get_date_time
 
 
 
