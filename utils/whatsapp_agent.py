@@ -15,6 +15,7 @@ import jsonpickle
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
 from utils.whatsapp import prepare_message
+from utils.tools import get_date_time
 
 
 load_dotenv('.credentials/.env')
@@ -27,7 +28,12 @@ tools = [
         name="Search",
         func=search.run,
         description="berguna ketika Anda perlu menjawab pertanyaan tentang informasi terkini",
-    )
+    ),
+    Tool(
+        name="Date and Time",
+        func=get_date_time,
+        description="berguna ketika Anda perlu menjawab pertanyaan tentang tanggal dan waktu",
+    ),
 ]
 
 
@@ -89,17 +95,7 @@ def predict_gpt(phone_number, incoming_message):
 
     llm_chain = LLMChain(llm=ChatOpenAI(temperature=0, model=MODEL), prompt=prompt)
     agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
-
-    # agent_kwargs = {
-    # "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
-    # }
-    
-    # agent = initialize_agent(tools=tools,llm=llm,
-    #     agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION ,
-    #     verbose=True,
-    #     # agent_kwargs=agent_kwargs,
-    #     memory=memory,
-    # )
+ 
 
     agent_chain = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=True, memory=memory
