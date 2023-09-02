@@ -7,11 +7,12 @@ from langchain.tools import StructuredTool
 
 def get_date_time(self) -> str:
     """Tanggal dan Jam saat ini"""
-    
+    now = datetime.datetime.now()
     local_timezone = datetime.datetime.now(datetime.timezone.utc).astimezone().tzinfo
-    date_time = local_timezone.strftime("%d/%m/%Y, %H:%M:%S")
     
-    date_time_text = f"Hari ini tanggal: {date_time}"
+    date_time = now.strftime("%d/%m/%Y, %H:%M:%S")
+    
+    date_time_text = f"Hari ini tanggal: {date_time} di {local_timezone}"
     
     return str(date_time_text)
 
