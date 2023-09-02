@@ -11,3 +11,4 @@ jsonpickle
 google-cloud
 google-cloud-vision
 google-cloud-videointelligence
+google-api-python-client

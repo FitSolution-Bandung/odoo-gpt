@@ -78,7 +78,7 @@ def save_memory(phone, memory):
 def predict_gpt(phone_number, incoming_message):
 
     memory = get_memory(phone_number)
-    print(f'\nMemory from database: {memory}')
+    # print(f'\nMemory from database: {memory}')
    
 
     MODEL = 'gpt-3.5-turbo'
@@ -90,40 +90,46 @@ def predict_gpt(phone_number, incoming_message):
     )
 
 
+    try:
+        with get_openai_callback() as cb:
+            # output = Conversation.run(input=incoming_message)
 
-    with get_openai_callback() as cb:
-        # output = Conversation.run(input=incoming_message)
-        output = agent_chain.run(input=incoming_message)
-        
-        print(f'\nOutput: {output}\n')
 
-        print(f"Total Tokens: {cb.total_tokens}")
-        print(f"Prompt Tokens: {cb.prompt_tokens}")
-        print(f"Completion Tokens: {cb.completion_tokens}")
-        print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
+            
+            output = agent_chain.run(input=incoming_message)
+            
+            print(f'\nOutput: {output}\n')
 
+            print(f"Total Tokens: {cb.total_tokens}")
+            print(f"Prompt Tokens: {cb.prompt_tokens}")
+            print(f"Completion Tokens: {cb.completion_tokens}")
+            print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
+
+    except Exception as e:
+        print(f'Error : {e}')
+        output = str(e)
 
     memory = save_memory(phone_number, memory)
-    print(f'\nMemory saved to database (after): {memory}')
+    # print(f'\nMemory saved to database (after): {memory}')
 
 
 
     return output
     
-    
-while True:
+
+# while True:
 
 
-    # print field phone number dari table user
-    with app.app_context():
-        #ambil semua data user field phone_number
-        user_query = User.query.all()
-        # print semua data user field phone_number
-        for user in user_query:
-            print(f'\nUser Phone Number: {user.phone_number}')
+#     # print field phone number dari table user
+#     with app.app_context():
+#         #ambil semua data user field phone_number
+#         user_query = User.query.all()
+#         # print semua data user field phone_number
+#         for user in user_query:
+#             print(f'\nUser Phone Number: {user.phone_number}')
 
 
-    #user input
-    phone = 6281384604433
-    user_input = input("Masukkan pertanyaan anda: ")
-    print(predict_gpt(phone, user_input))
+#     #user input
+#     phone = 6281384604433
+#     user_input = input("Masukkan pertanyaan anda: ")
+#     print(predict_gpt(phone, user_input))
