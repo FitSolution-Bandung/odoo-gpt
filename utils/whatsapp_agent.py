@@ -83,7 +83,7 @@ def predict_gpt(phone_number, incoming_message):
 
     MODEL = 'gpt-3.5-turbo'
 
-    llm_chain = LLMChain(llm=ChatOpenAI(temperature=0), prompt=prompt)
+    llm_chain = LLMChain(llm=OpenAI(temperature=0), prompt=prompt)
     agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
     agent_chain = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=True, memory=memory
