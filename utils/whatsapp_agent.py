@@ -88,18 +88,18 @@ def predict_gpt(phone_number, incoming_message):
   
 
     llm_chain = LLMChain(llm=ChatOpenAI(temperature=0, model=MODEL), prompt=prompt)
-    # agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
+    agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
 
-    agent_kwargs = {
-    "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
-    }
+    # agent_kwargs = {
+    # "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
+    # }
     
-    agent = initialize_agent(tools=tools,llm=llm,
-        agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION ,
-        verbose=True,
-        # agent_kwargs=agent_kwargs,
-        memory=memory,
-    )
+    # agent = initialize_agent(tools=tools,llm=llm,
+    #     agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION ,
+    #     verbose=True,
+    #     # agent_kwargs=agent_kwargs,
+    #     memory=memory,
+    # )
 
     agent_chain = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=True, memory=memory
