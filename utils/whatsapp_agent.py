@@ -24,7 +24,7 @@ GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
 
 
 search = GoogleSearchAPIWrapper()
-get_date_time = 
+# get_date_time = 
 
 tools = [
     Tool(
