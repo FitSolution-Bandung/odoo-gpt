@@ -7,6 +7,7 @@ from langchain.callbacks import get_openai_callback
 
 import os
 from dotenv import load_dotenv
+ 
 
 import jsonpickle
 
@@ -16,7 +17,6 @@ from utils.database import User as User, inspect_db, call_memory
 
 load_dotenv('.credentials/.env')
 GOOGLE_API_KEY = os.environ["GOOGLE_API_KEY"]
-
 
 
 search = GoogleSearchAPIWrapper()
@@ -45,29 +45,6 @@ prompt = ZeroShotAgent.create_prompt(
 )
 
 
-# #Get User dari database
-# inspect_text = inspect_db()
-# print(f'\nInspect Text: {inspect_text}')
-# memory_text = call_memory("628112341088")
-# print(f'\nMemory from database (before): {memory_text}')
-
-
-
-
-# with app.app_context():
-#     user_query = User.query.filter_by(phone_number="628112341088").first()
-#     print(f'\nMemory from database (TEST): {str(user_query)}')
-    
-#     if user_query:
-#         buf_memory_json = user_query.entity_memory
-#     else:
-#         buf_memory_json = None
-
-
-
-
-
-
 
 
 def get_memory(phone):
@@ -79,6 +56,8 @@ def get_memory(phone):
     else:
         memory = jsonpickle.decode(buf_memory_json)
         
+    # memory = ConversationBufferMemory(memory_key="chat_history")
+       
     return memory
 
 
@@ -96,19 +75,15 @@ def save_memory(phone, memory):
         
 
 
-def predict_gpt(incoming_message):
+def predict_gpt(phone_number, incoming_message):
 
-    phone = "628112341088"
-    memory = get_memory(phone)
+    memory = get_memory(phone_number)
     print(f'\nMemory from database: {memory}')
-
-
-    # memory = ConversationBufferMemory(memory_key="chat_history")
-
+   
 
     MODEL = 'gpt-3.5-turbo'
 
-    llm_chain = LLMChain(llm=ChatOpenAI(temperature=0, model=MODEL), prompt=prompt)
+    llm_chain = LLMChain(llm=ChatOpenAI(temperature=0), prompt=prompt)
     agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
     agent_chain = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=True, memory=memory
@@ -119,6 +94,7 @@ def predict_gpt(incoming_message):
     with get_openai_callback() as cb:
         # output = Conversation.run(input=incoming_message)
         output = agent_chain.run(input=incoming_message)
+        
         print(f'\nOutput: {output}\n')
 
         print(f"Total Tokens: {cb.total_tokens}")
@@ -127,7 +103,7 @@ def predict_gpt(incoming_message):
         print(f"Total Cost (IDR): IDR {cb.total_cost*15000}\n")
 
 
-    memory = save_memory(phone, memory)
+    memory = save_memory(phone_number, memory)
     print(f'\nMemory saved to database (after): {memory}')
 
 
@@ -136,7 +112,18 @@ def predict_gpt(incoming_message):
     
     
 while True:
+
+
+    # print field phone number dari table user
+    with app.app_context():
+        #ambil semua data user field phone_number
+        user_query = User.query.all()
+        # print semua data user field phone_number
+        for user in user_query:
+            print(f'\nUser Phone Number: {user.phone_number}')
+
+
     #user input
-    phone = ""
+    phone = 6281384604433
     user_input = input("Masukkan pertanyaan anda: ")
-    print(predict_gpt(user_input))
+    print(predict_gpt(phone, user_input))

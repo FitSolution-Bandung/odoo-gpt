@@ -5,6 +5,9 @@ import io
 
 from tempfile import NamedTemporaryFile
 
+
+
+
 # Imports the Google Cloud client library
 from google.cloud import vision, videointelligence
 

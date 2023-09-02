@@ -24,6 +24,9 @@ import textwrap
 import utils.login as login
 import utils.sidebar as sidebar
 import utils.whatsapp as wa
+import utils.whatsapp_agent as wa_agent
+
+
 
 from utils.database import Message, User, db_sqlalchemy, app, write_chat_to_db
 
@@ -80,7 +83,8 @@ def show_chat_histories(phone_number, user_input=None):
         with st.chat_message(name="Odoo-GPT", avatar="🤖"):
             with st.spinner("Memuat Respon ..."):
                 # output = Conversation.run(input=user_input)
-                output = wa.prepare_message(phone_number, user_input)
+                # output = wa.prepare_message(phone_number, user_input)
+                output = wa_agent.predict_gpt(phone_number, user_input)
 
             st.write(output)
 
