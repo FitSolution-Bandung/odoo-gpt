@@ -198,10 +198,20 @@ def handle_incoming_message(data):
         if phone and incoming_message is not None:    
             # message = message + prepare_message(phone, incoming_message)
 
-            message = message + predict_gpt(phone, incoming_message)
+            response = predict_gpt(phone, incoming_message)
+
+            output = response['output']
+            total_cost = response['total_cost']
+
+
+            
+
+            message = message + str(output) + f' [{str(total_cost)}]'
 
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
-            write_chat_to_db(user_name, phone, incoming_message, sender, message)
+            write_chat_to_db(user_name, phone, incoming_message, sender, message, total_cost)
+
+
             
         return jsonify({'status': 'success', 'phone': phone})
 
@@ -212,8 +222,8 @@ def handle_incoming_message(data):
         else:
             error_msg = ""
 
-        # message = prepare_message(phone, incoming_message)
-        # send_whatsapp_message(phone, message)
+        message = prepare_message(phone, incoming_message)
+        send_whatsapp_message(phone, message)
         # # send_whatsapp_message('628112227980', f"{error_msg}Kirimkam 'reset' untuk merefresh percakapan baru.")
         raise
  
