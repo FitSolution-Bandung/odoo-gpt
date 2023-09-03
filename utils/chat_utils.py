@@ -10,9 +10,6 @@ import utils.whatsapp_agent as wa_agent
 def show_chat_histories(phone_number, user_input=None, **kwargs):
       
     print(f'nomor telp user: {phone_number}')
-    output = ""
-    total_cost = 0.0
-
 
     with app.app_context():
       # messages = Message.query.all()
@@ -36,7 +33,8 @@ def show_chat_histories(phone_number, user_input=None, **kwargs):
                     st.write(f"{generated[i]}")
 
     if user_input:
-        output =  ""
+        output = ""
+        total_cost = 0.0
 
         with st.chat_message(name="User", avatar="🧑‍💻"):
            st.write(user_input)
@@ -48,7 +46,7 @@ def show_chat_histories(phone_number, user_input=None, **kwargs):
 
                 output, total_cost = wa_agent.predict_gpt(phone_number, user_input)
 
-            st.write(output)
+            st.write(str(output))
 
 
         # Tambahkan pesan pengguna dan respon bot ke database
@@ -57,7 +55,6 @@ def show_chat_histories(phone_number, user_input=None, **kwargs):
         past = user_input
         recipient = phone_number
       
-
         #Check parameter di *args, **kwargs
         sender = kwargs.get('sender', "Odoo-GPT")       
         
