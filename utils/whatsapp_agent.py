@@ -30,7 +30,7 @@ tools = [
     Tool(
         name="General Query",
         func=answer_general_query,
-        description="berguna untuk menjawab pertanyaan umum dari berbagai topik tanpa memerlukan sumber data eksternal. Output dari function adalah response untuk user. 'Thought' adalah isian untuk 'Action Input'",
+        description="berguna untuk menjawab pertanyaan umum dari berbagai topik tanpa memerlukan sumber data eksternal. Output dari function adalah response untuk user.",
         # kwargs={"input": "input", "phone_number": "phone_number"},
 
     ),
