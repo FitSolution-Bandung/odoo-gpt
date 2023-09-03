@@ -100,11 +100,11 @@ def predict_gpt(phone_number, incoming_message):
   
 
     llm_chain = LLMChain(llm=ChatOpenAI(temperature=0, model=MODEL), prompt=prompt)
-    agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True, max_iterations=3, early_stopping_method="generate",)
+    agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True, max_iterations=5, early_stopping_method="generate",)
  
 
     agent_chain = AgentExecutor.from_agent_and_tools(
-        agent=agent, tools=tools, verbose=True, memory=memory, handle_parsing_errors="Check your output and make sure it conforms!", max_iterations=3, early_stopping_method="generate",
+        agent=agent, tools=tools, verbose=True, memory=memory, handle_parsing_errors="Check your output and make sure it conforms!", max_iterations=5, early_stopping_method="generate",
     )
 
 
