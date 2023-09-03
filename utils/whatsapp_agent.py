@@ -137,8 +137,8 @@ def predict_gpt(phone_number, incoming_message):
                 )
 
     agent = initialize_agent(
-        # tools, llm, agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-        tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+        tools, llm, agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+        # tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
         verbose=True, 
         handle_parsing_errors="Check your output, make resume, and make sure it conforms!",
         max_iterations=5, 
