@@ -38,9 +38,10 @@ class Message(db_sqlalchemy.Model):
     past = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=False)
     generated = db_sqlalchemy.Column(db_sqlalchemy.Text, nullable=False)
     timestamp = db_sqlalchemy.Column(db_sqlalchemy.DateTime, default=datetime.utcnow, nullable=False)
+    total_cost = db_sqlalchemy.Column(db_sqlalchemy.Float, nullable=False)
 
     def __repr__(self):
-        return f'<message_id {self.id}: timestamp={self.timestamp.strftime(date_format)}, recipient={self.recipient}, past={self.past}, sender={self.sender}, generated={self.generated}>'
+        return f'<message_id {self.id}: timestamp={self.timestamp.strftime(date_format)}, recipient={self.recipient}, past={self.past}, sender={self.sender}, generated={self.generated}, total_cost=Rp. {round(self.total_cost,2)}>'
 
 
 class Document(db_sqlalchemy.Model):
@@ -61,11 +62,14 @@ class Document(db_sqlalchemy.Model):
 
 def inspect_db():
     # Create a context for the current app
+
+
     with app.app_context():
         
         # Ketika mau drop di un-comment dulu (PENTING SAAT akan REINSTAL)
-        # db_sqlalchemy.drop_all()
+        #db_sqlalchemy.drop_all()
         # user.__table__.drop(db_sqlalchemy.engine)
+
 
         # Get table names
         engine = db_sqlalchemy.engine
@@ -73,8 +77,42 @@ def inspect_db():
         tables = inspector.get_table_names()
         print(f'Total Tables: {len(tables)}. [database.py]')
         for i, table in enumerate(tables):
-            print(f"Table [{i}]: {table.capitalize()}")
+            a = i+1
+            columns = inspector.get_columns(table)
+            table_columns = [column['name'] for column in columns]
     
+            #Cek apakah field dalam tabel sudah sesuai dengan objectnya? kalau berbeda lakukan drop table dan create kembali.
+            model = globals()[table.capitalize()]
+            model_columns = [column.name for column in model.__table__.columns]
+
+
+            while set(model_columns) != set(table_columns):
+                print(f'Column names for model of {table.capitalize()} is NOT OK')
+                print(f'Dropping table "{table}"...')
+                model.__table__.drop(db_sqlalchemy.engine)
+                print(f'Initialize table "{table}"...')
+                # db_sqlalchemy.create_all()
+                table_to_create = model.__table__
+                table_to_create.create(bind=engine, checkfirst=True)
+
+
+                inspector = inspect(engine)
+                tables = inspector.get_table_names()
+                columns = inspector.get_columns(table)
+                table_columns = [column['name'] for column in columns]
+                #Cek apakah field dalam tabel sudah sesuai dengan objectnya? kalau berbeda lakukan drop table dan create kembali.
+                model = globals()[table.capitalize()]
+                model_columns = [column.name for column in model.__table__.columns]
+                
+
+            print(f"Table [{a}]: {table.capitalize()} ({', '.join(table_columns)}) --> OK")
+
+
+
+
+
+
+
     return tables
 
         
@@ -92,8 +130,8 @@ def init_app(app):
 
 
 #Fungsi untuk tulis record chat ke database
-def write_chat_to_db(user_name, recipient, past, sender ,generated):
-
+def write_chat_to_db(user_name, recipient, past, sender ,generated, total_cost):
+ 
     msg = Message(
                 user_id=1,
                 user_name=user_name,
@@ -101,7 +139,9 @@ def write_chat_to_db(user_name, recipient, past, sender ,generated):
                 past=past,
                 sender=sender,
                 generated=generated,
-                timestamp=datetime.now())
+                timestamp=datetime.now(),
+                total_cost=total_cost
+                )
 
     with app.app_context():
         db_sqlalchemy.session.add(msg)  # Menambahkan objek pesan masuk ke database

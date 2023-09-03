@@ -1,7 +1,7 @@
 import datetime
 import pytz
 
-from langchain.pydantic_v1 import BaseModel, Extra, root_validator
+# from langchain.pydantic_v1 import BaseModel, Extra, root_validator
 from langchain.tools import StructuredTool
 
 
