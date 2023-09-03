@@ -11,6 +11,13 @@ def show_chat_histories(phone_number, user_input=None, **kwargs):
       
     print(f'nomor telp user: {phone_number}')
 
+    st.session_state["phone_number"] = phone_number
+    
+    
+
+
+
+
     with app.app_context():
       # messages = Message.query.all()
 

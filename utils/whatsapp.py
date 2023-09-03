@@ -47,6 +47,15 @@ from dotenv import load_dotenv
 load_dotenv('.credentials/.env')
 
 
+# Initialize Phone Number
+
+phone_number = ""
+if "phone_number" not in st.session_state:
+  st.session_state["phone_number"] = phone_number
+
+
+
+
 # Fungsi untuk mengirim pesan WhatsApp menggunakan API Wablas
 def send_whatsapp_message(phone_number, message):
     url = "https://pati.wablas.com/api/v2/send-message"
@@ -239,7 +248,11 @@ def prepare_message(phone, incoming_message):
         #Membaca Entity Memory dari database        
         with app.app_context():
             user_query = User.query.filter_by(phone_number=phone).first()
-            buf_memory_json = user_query.entity_memory
+            
+            if user_query is not None:
+                buf_memory_json = user_query.entity_memory
+            else:
+                buf_memory_json = None
 
         #Reset Entity Memory ketika pesan masuk adalah "reset"
         if incoming_message.lower() == "reset":

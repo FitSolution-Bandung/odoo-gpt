@@ -49,6 +49,7 @@ def store_credentials(url, db, username, password):
     # Initialize session states
     if "mobile_phone" not in st.session_state:
       st.session_state["mobile_phone"] = ""
+      st.session_state["phone_number"] = st.session_state["mobile_phone"]
       st.session_state["nick_name"] = ""
 
 
@@ -80,6 +81,7 @@ def store_credentials(url, db, username, password):
 
     # Simpan data login ke session state
     st.session_state['mobile_phone'] = mobile_phone
+    st.session_state['phone_number'] = mobile_phone
     st.session_state['nick_name'] = nick_name
     
     print(f'\nLoging In ...\nNick Name: {nick_name}\nMobile phone: {mobile_phone}')

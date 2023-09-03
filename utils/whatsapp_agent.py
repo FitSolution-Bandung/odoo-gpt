@@ -15,7 +15,7 @@ import jsonpickle
 from utils.database import db_sqlalchemy, app
 from utils.database import User as User, inspect_db, call_memory
 from utils.whatsapp import prepare_message
-from utils.tools import get_date_time
+from utils.tools import get_date_time, answer_general_query
 
 
 
@@ -27,6 +27,15 @@ search = GoogleSearchAPIWrapper()
 # get_date_time = 
 
 tools = [
+    Tool(
+        name="General Query",
+        func=answer_general_query,
+        description="berguna untuk menjawab pertanyaan umum dari berbagai topik tanpa memerlukan sumber data eksternal. Output dari function adalah response untuk user. 'Thought' adalah isian untuk 'Action Input'",
+        # kwargs={"input": "input", "phone_number": "phone_number"},
+
+    ),
+
+    
     Tool(
         name="Search",
         func=search.run,
@@ -80,8 +89,9 @@ def save_memory(phone, memory):
         user_query = User.query.filter_by(phone_number=phone).first()
         # user_query = jsonpickle.encode(memory)
 
-        user_query.entity_memory =jsonpickle.encode(memory)
-        db_sqlalchemy.session.commit()
+        if user_query is not None:
+            user_query.entity_memory =jsonpickle.encode(memory)
+            db_sqlalchemy.session.commit()
 
 
     
@@ -107,6 +117,7 @@ def predict_gpt(phone_number, incoming_message):
 
     agent_chain = AgentExecutor.from_agent_and_tools(
         agent=agent, tools=tools, verbose=True, memory=memory, handle_parsing_errors="Check your output and make sure it conforms!", max_iterations=5, early_stopping_method="generate",
+        phone_number=phone_number
     )
 
 
@@ -116,7 +127,7 @@ def predict_gpt(phone_number, incoming_message):
         try:
             # output = Conversation.run(input=incoming_message)
 
-            output = agent_chain.run(input=incoming_message, )
+            output = agent_chain.run(input=incoming_message)
             
             print(f'\nOutput: {output}\n')
 

@@ -28,8 +28,10 @@ import utils.whatsapp_agent as wa_agent
 
 
 
-from utils.database import Message, User, db_sqlalchemy, app, write_chat_to_db
+from utils.database import Message, User, db_sqlalchemy, app
 from utils.chat_utils import show_chat_histories
+
+ 
 
   
 
@@ -86,6 +88,9 @@ def run():
       st.session_state["token"] = []
     if "credentials" not in st.session_state:
       st.session_state["credentials"] = []
+    
+    if "phone_number" not in st.session_state:
+      st.session_state["phone_number"] = ""
 
  
     title = st.empty()
@@ -97,6 +102,7 @@ def run():
         options = [user.phone_number for user in User.query.all()]
         selected_number = st.selectbox('Filter dengan Nomor Telp:', options)
         user = User.query.filter_by(phone_number=selected_number).first()
+        st.session_state["phone_number"] = selected_number
 
     with title:
         name = user.nick_name if user is not None else ""

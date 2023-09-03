@@ -25,7 +25,7 @@ import utils.login as login
 import utils.sidebar as sidebar
 import utils.whatsapp as wa
 
-from utils.database import Message, User, db_sqlalchemy, app, write_chat_to_db
+from utils.database import Message, User, db_sqlalchemy, app
 
 from utils.chat_utils import show_chat_histories
   

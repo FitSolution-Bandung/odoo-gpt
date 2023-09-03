@@ -20,7 +20,7 @@ sys.path.append('j:\My Drive\FPP PROJECT\IT - MULTI MEDIA\REPO\odoo-gpt\odoo-gpt
 from utils.database import init_app, db_sqlalchemy, app
 from utils.database import User as User
 from utils.database import Message as Message
-from utils.database import write_chat_to_db, reset_memory, call_memory
+from utils.database import reset_memory, call_memory
 
 
 from utils.get_credential import get_credentials, is_valid_token
