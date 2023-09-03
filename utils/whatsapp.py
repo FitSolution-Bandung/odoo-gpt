@@ -199,6 +199,7 @@ def handle_incoming_message(data):
             # message = message + prepare_message(phone, incoming_message)
 
             response = predict_gpt(phone, incoming_message)
+            print(f'Response: {response}')
 
             output = response['output']
             total_cost = response['total_cost']
