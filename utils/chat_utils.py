@@ -36,6 +36,8 @@ def show_chat_histories(phone_number, user_input=None, **kwargs):
                     st.write(f"{generated[i]}")
 
     if user_input:
+        output =  ""
+
         with st.chat_message(name="User", avatar="🧑‍💻"):
            st.write(user_input)
 
