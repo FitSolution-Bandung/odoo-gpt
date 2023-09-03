@@ -90,7 +90,7 @@ def save_memory(phone, memory):
 
 
 def predict_gpt(phone_number, incoming_message):
-    output = ""
+    output = "..."
     total_cost = 0.0
 
     memory = get_memory(phone_number)
