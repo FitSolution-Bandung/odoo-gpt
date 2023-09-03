@@ -90,6 +90,8 @@ def save_memory(phone, memory):
 
 
 def predict_gpt(phone_number, incoming_message):
+    output = None
+    total_cost = None
 
     memory = get_memory(phone_number)
     # print(f'\n\nMemory from database (before) : {memory}')
@@ -135,21 +137,4 @@ def predict_gpt(phone_number, incoming_message):
 
 
     return output, total_cost
-    
-
-# while True:
-
-
-#     # print field phone number dari table user
-#     with app.app_context():
-#         #ambil semua data user field phone_number
-#         user_query = User.query.all()
-#         # print semua data user field phone_number
-#         for user in user_query:
-#             print(f'\nUser Phone Number: {user.phone_number}')
-
-
-#     #user input
-#     phone = 6281384604433
-#     user_input = input("Masukkan pertanyaan anda: ")
-#     print(predict_gpt(phone, user_input))
+   
