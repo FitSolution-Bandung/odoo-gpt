@@ -18,7 +18,7 @@ def get_date_time(self) -> str:
     local_timezone = datetime.timezone(datetime.timedelta(hours=7))  # WIB (Jakarta)
     now = datetime.datetime.now(local_timezone)
     
-    date_time = now.strftime("%d/%m/%Y, %H:%M:%S")
+    date_time = now.strftime("%d/%m/%Y, %H:%M")
     
     date_time_text = f"Hari ini {day_name}, tanggal {date_time} di {now.tzinfo}"
     

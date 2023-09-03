@@ -5,6 +5,7 @@ flask_sqlalchemy
 python-dotenv
 PyPDF2
 langchain
+langchain_experimental
 openai
 tiktoken
 jsonpickle
@@ -12,3 +13,4 @@ google-cloud
 google-cloud-vision
 google-cloud-videointelligence
 google-api-python-client
+google-search-results

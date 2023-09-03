@@ -35,6 +35,7 @@ from utils.database import init_app, db_sqlalchemy, app
 from utils.database import User as User
 from utils.database import Message as Message
 from utils.database import write_chat_to_db
+from utils.whatsapp_agent import predict_gpt
 
 from .whatsapp_utils import audio_to_text, get_location_from_message,recognize_image_from_url, analyze_video, analyze_document
 
@@ -195,7 +196,10 @@ def handle_incoming_message(data):
         # Persiapkan pesan untuk dikirimkan ke whatsapp
         # if phone ==  "628112227980": #Selama masa percobaan, hanya nomor ini yang bisa mengakses
         if phone and incoming_message is not None:    
-            message = message + prepare_message(phone, incoming_message)
+            # message = message + prepare_message(phone, incoming_message)
+
+            message = message + predict_gpt(phone, incoming_message)
+
             send_whatsapp_message(phone, message)  # Mengirim respon ke pengirim pesan
             write_chat_to_db(user_name, phone, incoming_message, sender, message)
             
@@ -213,7 +217,6 @@ def handle_incoming_message(data):
         # # send_whatsapp_message('628112227980', f"{error_msg}Kirimkam 'reset' untuk merefresh percakapan baru.")
         raise
  
-
 
 # Fungsi untuk mendapatkan respon dari model chatgpt
 def prepare_message(phone, incoming_message):
