@@ -5,7 +5,7 @@ import calendar
 
 # from langchain.pydantic_v1 import BaseModel, Extra, root_validator
 from langchain.tools import StructuredTool
-from utils.whatsapp import prepare_message, phone_number
+
  
 
 def get_date_time(self) -> str:
@@ -27,6 +27,7 @@ def get_date_time(self) -> str:
 
 
 def answer_general_query(question: str, **kwargs) -> str:
+    from utils.whatsapp import prepare_message, phone_number
     # Menggunakan model OpenAI untuk mendapatkan jawaban
     # response = openai_model.predict(question)
     
